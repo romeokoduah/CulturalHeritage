@@ -21,7 +21,7 @@ export function CountryPage() {
   const earned = state.visitedCountries.includes(country.id)
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 pb-16 relative z-10 bg-ink-950/90 backdrop-blur-sm min-h-screen">
+    <div className="mx-auto w-full max-w-5xl px-4 pb-16">
       {/* Hero */}
       <div className="relative mt-4 overflow-hidden rounded-3xl">
         <HeritageVisual motif={country.motif} color={country.colors[0]} className="h-52 w-full sm:h-64" rounded="rounded-3xl" />

@@ -1,8 +1,11 @@
-import { useState, useRef } from 'react'
+import { Suspense, lazy, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, MapPin, Sparkles, X, Clock, Building2, Globe2, Mic2, BookOpen } from 'lucide-react'
 import { motion, useInView } from 'framer-motion'
 
+const GlobeExplorer = lazy(() =>
+  import('../features/globe/GlobeExplorer').then((m) => ({ default: m.GlobeExplorer })),
+)
 import { COUNTRIES } from '../data/countries'
 import { SITES } from '../data/sites'
 import type { Country } from '../lib/types'
@@ -123,15 +126,25 @@ export function Landing() {
 
   return (
     <div className="overflow-x-hidden">
-      {/* ── HERO — globe is persistent in AppShell background ── */}
-      <section className="relative h-[calc(100dvh-3.5rem)] min-h-[560px] w-full overflow-hidden">
+      {/* ── HERO with globe ── */}
+      <section className="relative h-[calc(100dvh-3.5rem)] min-h-[560px] w-full overflow-hidden bg-ink-950">
         {/* Animated particle background */}
         <Particles className="absolute inset-0 z-0" count={60} color="#ffd166" speed={0.2} />
         {/* Meteors for visual drama */}
         <Meteors count={12} className="z-[1]" />
-        {/* Radial gradient overlays — semi-transparent so globe shows through */}
-        <div className="pointer-events-none absolute inset-0 z-[2] bg-[radial-gradient(circle_at_50%_30%,rgba(106,164,255,0.08),transparent_55%)]" />
-        <div className="pointer-events-none absolute inset-0 z-[2] bg-[radial-gradient(ellipse_at_50%_100%,rgba(7,10,20,0.4),transparent_60%)]" />
+        {/* Radial gradient overlays */}
+        <div className="pointer-events-none absolute inset-0 z-[2] bg-[radial-gradient(circle_at_50%_30%,rgba(106,164,255,0.12),transparent_55%)]" />
+        <div className="pointer-events-none absolute inset-0 z-[2] bg-[radial-gradient(ellipse_at_50%_100%,rgba(15,15,30,0.8),transparent_60%)]" />
+
+        <Suspense
+          fallback={
+            <div className="absolute inset-0 grid place-items-center">
+              <div className="h-12 w-12 animate-spin rounded-full border-2 border-white/20 border-t-gold-400" />
+            </div>
+          }
+        >
+          <GlobeExplorer onSelectCountry={setSelected} />
+        </Suspense>
 
         {/* Hero overlay */}
         <div className="pointer-events-none absolute inset-x-0 top-0 z-20 px-5 pt-6 text-center">
@@ -382,7 +395,7 @@ export function Landing() {
           <div>
             <SectionHeading kicker="Why it matters" title="Heritage, reimagined by AI" align="left" />
             <p className="mt-4 max-w-xl text-white/60">
-              CultureSphere helps preserve, interpret and share the stories, languages and community knowledge behind the
+              HeritageQuest helps preserve, interpret and share the stories, languages and community knowledge behind the
               world's heritage — making them explorable, interactive and alive for a new generation.
             </p>
             <div className="mt-6 flex flex-wrap gap-2">
@@ -426,7 +439,7 @@ export function Footer() {
   return (
     <footer className="border-t border-white/5 bg-ink-950 px-4 py-10 text-center text-xs text-white/40">
       <p className="font-display text-sm text-white/70">
-        Culture<span className="gradient-text">Sphere</span>
+        Heritage<span className="gradient-text">Quest</span>
       </p>
       <p className="mt-2">Built for the AI for Cultural Heritage & Storytelling challenge · SDG 4 · 8 · 11</p>
       <p className="mt-1">A Progressive Web App — install it on your phone for offline exploration.</p>

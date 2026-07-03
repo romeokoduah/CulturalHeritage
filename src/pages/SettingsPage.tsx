@@ -34,7 +34,7 @@ export function SettingsPage() {
           <KeyRound size={16} className="text-gold-400" /> Connect Claude (optional)
         </p>
         <p className="mt-2 text-sm text-white/60">
-          CultureSphere ships with a rich offline storyteller. To enable live, open-ended AI conversations, connect an
+          HeritageQuest ships with a rich offline storyteller. To enable live, open-ended AI conversations, connect an
           Anthropic API key. It is stored only in your browser.
         </p>
 
@@ -75,7 +75,7 @@ export function SettingsPage() {
       <div className="mt-6 rounded-3xl glass p-5">
         <h2 className="font-display text-lg font-bold">Install the app</h2>
         <p className="mt-2 text-sm text-white/60">
-          CultureSphere is a Progressive Web App. On your phone, open the browser menu and choose{' '}
+          HeritageQuest is a Progressive Web App. On your phone, open the browser menu and choose{' '}
           <span className="text-white">“Add to Home Screen”</span> to install it and explore offline.
         </p>
       </div>

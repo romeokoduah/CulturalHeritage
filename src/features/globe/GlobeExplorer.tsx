@@ -325,7 +325,7 @@ function buildHoverCard(pin: PinDatum): HTMLDivElement {
 /* ------------------------------------------------------------------ */
 
 export function GlobeExplorer({
-  onSelectCountry: _onSelectCountry,
+  onSelectCountry,
 }: {
   onSelectCountry: (c: Country) => void
 }) {
@@ -429,12 +429,14 @@ export function GlobeExplorer({
         container.style.transform = 'scale(1)'
       })
 
-      // Click handler — all pins navigate
+      // Click handler — all pins navigate to their page
       container.addEventListener('click', (e) => {
         e.stopPropagation()
         if (pin.kind === 'site') {
           navigate(`/site/${pin.id}`)
         } else {
+          const country = COUNTRIES.find((c) => c.id === pin.countryId)
+          if (country) onSelectCountry(country)
           navigate(`/country/${pin.countryId}`)
         }
       })

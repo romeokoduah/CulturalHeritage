@@ -1,6 +1,6 @@
 import type { AIProvider, ChatMessage, StorytellerContext } from './types'
 
-const KEY_STORAGE = 'culturesphere.anthropicKey'
+const KEY_STORAGE = 'heritagequest.anthropicKey'
 const MODEL = 'claude-sonnet-4-5'
 
 export function setClaudeKey(key: string) {
@@ -16,7 +16,7 @@ export function clearClaudeKey() {
 function systemPrompt(context: StorytellerContext): string {
   const { site, country } = context
   const lines = [
-    'You are the CultureSphere Storyteller — a warm, vivid guide to world cultural heritage.',
+    'You are the HeritageQuest Storyteller — a warm, vivid guide to world cultural heritage.',
     'Speak with the curiosity of a great museum docent: accurate, evocative, and respectful of the communities whose heritage you describe.',
     'Keep replies concise (2–5 short paragraphs). Offer a local greeting, a surprising fact, or a follow-up question when it fits. Never invent facts about a site.',
   ]

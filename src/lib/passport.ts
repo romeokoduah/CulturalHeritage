@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { SITES_BY_ID } from '../data/sites'
 
-const STORAGE_KEY = 'culturesphere.passport.v1'
+const STORAGE_KEY = 'heritagequest.passport.v1'
 
 export interface PassportState {
   visitedSites: string[]

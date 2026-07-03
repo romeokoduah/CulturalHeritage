@@ -10,8 +10,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
       manifest: {
-        name: 'CultureSphere — AI for Cultural Heritage',
-        short_name: 'CultureSphere',
+        name: 'HeritageQuest — AI for Cultural Heritage',
+        short_name: 'HeritageQuest',
         description:
           "Explore, preserve and reimagine the world's living cultural heritage through an interactive globe and AI storytelling.",
         theme_color: '#0b1020',

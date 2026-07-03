@@ -31,7 +31,7 @@ export function SitePage() {
   const visited = isVisited(site.id)
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 pb-16 relative z-10 bg-ink-950/90 backdrop-blur-sm min-h-screen">
+    <div className="mx-auto w-full max-w-4xl px-4 pb-16">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 pt-4 text-xs text-white/50">
         <Link to="/" className="flex items-center gap-1 hover:text-white">

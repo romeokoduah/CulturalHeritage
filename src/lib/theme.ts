@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react'
 
 export type Theme = 'dark' | 'light'
 
-const STORAGE_KEY = 'culturesphere.theme'
+const STORAGE_KEY = 'heritagequest.theme'
 const THEME_EVENT = 'theme:update'
 
 /** Read the persisted theme, or fall back to the OS preference. */

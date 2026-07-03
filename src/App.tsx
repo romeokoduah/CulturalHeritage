@@ -8,6 +8,8 @@ const CountryPage = lazy(() => import('./pages/CountryPage').then((m) => ({ defa
 const SitePage = lazy(() => import('./pages/SitePage').then((m) => ({ default: m.SitePage })))
 const PassportPage = lazy(() => import('./pages/PassportPage').then((m) => ({ default: m.PassportPage })))
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })))
+const TimelinePage = lazy(() => import('./pages/TimelinePage').then((m) => ({ default: m.TimelinePage })))
+const SimulatorPage = lazy(() => import('./pages/SimulatorPage').then((m) => ({ default: m.SimulatorPage })))
 const NotFound = lazy(() => import('./pages/NotFound').then((m) => ({ default: m.NotFound })))
 
 function ScrollToTop() {
@@ -74,6 +76,22 @@ export default function App() {
             element={
               <Suspense fallback={<PageLoader />}>
                 <SettingsPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/timeline"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <TimelinePage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/simulator"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <SimulatorPage />
               </Suspense>
             }
           />

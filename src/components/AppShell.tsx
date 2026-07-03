@@ -1,9 +1,15 @@
+import { Suspense, lazy, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
-import { Globe2, Compass, BookMarked, Settings, Moon, Sun } from 'lucide-react'
+import { Globe2, Compass, BookMarked, Settings, Moon, Sun, Clock, Building2 } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { usePassport } from '../lib/passport'
 import { SITES } from '../data/sites'
 import { useTheme, toggleTheme } from '../lib/theme'
+import type { Country } from '../lib/types'
+
+const GlobeExplorer = lazy(() =>
+  import('../features/globe/GlobeExplorer').then((m) => ({ default: m.GlobeExplorer })),
+)
 
 function ThemeToggle() {
   const theme = useTheme()
@@ -23,6 +29,8 @@ function ThemeToggle() {
 
 const NAV = [
   { to: '/', label: 'Explore', icon: Globe2, end: true },
+  { to: '/timeline', label: 'Timeline', icon: Clock, end: false },
+  { to: '/simulator', label: 'Simulator', icon: Building2, end: false },
   { to: '/passport', label: 'Passport', icon: BookMarked, end: false },
   { to: '/settings', label: 'AI', icon: Settings, end: false },
 ]
@@ -31,9 +39,29 @@ export function AppShell() {
   const { state } = usePassport()
   const location = useLocation()
   const pct = Math.round((state.visitedSites.length / SITES.length) * 100)
+  const isHome = location.pathname === '/'
+  const [_selected, setSelected] = useState<Country | null>(null)
 
   return (
     <div className="relative flex min-h-[100dvh] flex-col">
+      {/* ── Persistent Globe Background ── */}
+      <div
+        className={cn(
+          'fixed inset-0 z-0 transition-opacity duration-700',
+          isHome ? 'opacity-100' : 'opacity-30 pointer-events-none',
+        )}
+      >
+        <Suspense
+          fallback={
+            <div className="absolute inset-0 grid place-items-center bg-ink-950">
+              <div className="h-12 w-12 animate-spin rounded-full border-2 border-white/20 border-t-gold-400" />
+            </div>
+          }
+        >
+          <GlobeExplorer onSelectCountry={setSelected} />
+        </Suspense>
+      </div>
+
       {/* Top bar */}
       <header className="safe-top sticky top-0 z-40 border-b border-white/5 bg-ink-950/70 backdrop-blur-xl">
         <div className="mx-auto flex h-14 w-full max-w-5xl items-center gap-3 px-4">
@@ -74,7 +102,7 @@ export function AppShell() {
         </div>
       </header>
 
-      <main className="relative flex-1">
+      <main className="relative z-10 flex-1">
         <Outlet />
       </main>
 

@@ -19,19 +19,25 @@ export const COUNTRIES: Country[] = [
   },
   {
     id: 'china',
-    name: 'China',
+    name: 'Beijing',
     emojiFlag: '🇨🇳',
-    coords: [35.8617, 104.1954],
+    coords: [39.9042, 116.4074],
     region: 'East Asia',
     summary:
-      'Five thousand years of continuous civilisation — dynasties, silk roads, philosophy and invention — written across walls, warriors, gardens and mountains.',
-    languages: ['Mandarin', 'Cantonese', 'Wu', 'Min', 'and 290+ living languages'],
+      'The imperial capital of dynasties — where the Great Wall meets courtyard alleys, Peking Opera resonates through tea houses, and centuries of culture live on in every hutong corner.',
+    languages: ['Mandarin', 'Beijing Dialect', 'Cantonese', 'Wu', 'Min'],
     colors: ['#e5533d', '#ffd166'],
     heritageIntro:
-      "China's heritage stretches from the rammed-earth ramparts of the Great Wall to the buried army of its first emperor and the poetry of West Lake. It is a landscape where philosophy, statecraft and art have been fused for millennia.",
-    badgeLabel: 'Middle Kingdom Voyager',
+      "Beijing's heritage stretches from the rammed-earth ramparts of the Great Wall to the sacred geometry of the Temple of Heaven, from the vanishing hutong alleys to the painted faces of Peking Opera. It is a city where imperial grandeur and intimate neighbourhood life have been fused for millennia.",
+    badgeLabel: 'Imperial Capital Voyager',
     motif: 'wall',
-    siteIds: ['great-wall-mutianyu', 'terracotta-army', 'west-lake-hangzhou'],
+    siteIds: [
+      'great-wall-mutianyu', 'terracotta-army', 'west-lake-hangzhou',
+      'beijing-dialect', 'pingshu-narrative', 'peking-opera',
+      'siheyuan-hutong', 'temple-of-heaven', 'beijing-roast-duck',
+      'cloisonne-enamel', 'temple-fairs-miaohui', 'tcm-beijing-school',
+      'diabolo-spinning',
+    ],
   },
   {
     id: 'kazakhstan',

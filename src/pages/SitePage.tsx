@@ -31,7 +31,7 @@ export function SitePage() {
   const visited = isVisited(site.id)
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 pb-16">
+    <div className="mx-auto w-full max-w-4xl px-4 pb-16 relative z-10 bg-ink-950/90 backdrop-blur-sm min-h-screen">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 pt-4 text-xs text-white/50">
         <Link to="/" className="flex items-center gap-1 hover:text-white">
@@ -63,6 +63,18 @@ export function SitePage() {
         <MapPin size={13} /> {site.city}
       </p>
       <p className="mt-3 max-w-2xl text-balance text-white/70">{site.tagline}</p>
+
+      {/* Hero image */}
+      {site.imageUrl && (
+        <div className="mt-4 overflow-hidden rounded-3xl">
+          <img
+            src={site.imageUrl}
+            alt={site.name}
+            className="w-full h-48 sm:h-64 object-cover"
+            loading="lazy"
+          />
+        </div>
+      )}
 
       {/* 3D viewer */}
       <div className="mt-6">
@@ -136,8 +148,17 @@ export function SitePage() {
         <h2 className="mb-4 font-display text-xl font-bold">Gallery</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {site.gallery.map((g, i) => (
-            <figure key={i} className="overflow-hidden rounded-2xl glass">
-              <HeritageVisual motif={g.motif} color={site.themeColor} className="aspect-square w-full" rounded="rounded-none" />
+            <figure key={i} className="overflow-hidden rounded-2xl glass group">
+              {g.imageUrl ? (
+                <img
+                  src={g.imageUrl}
+                  alt={g.caption}
+                  className="aspect-square w-full object-cover transition group-hover:scale-105"
+                  loading="lazy"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden') }}
+                />
+              ) : null}
+              <HeritageVisual motif={g.motif} color={site.themeColor} className={cn("aspect-square w-full", g.imageUrl && "hidden")} rounded="rounded-none" />
               <figcaption className="px-3 py-2 text-[11px] text-white/50">{g.caption}</figcaption>
             </figure>
           ))}

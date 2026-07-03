@@ -1,12 +1,14 @@
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Check, Globe2, Languages, MapPin } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, Clock, Globe2, Languages, MapPin } from 'lucide-react'
 import { COUNTRIES_BY_ID } from '../data/countries'
 import { SITES_BY_COUNTRY } from '../data/sites'
 import { HeritageVisual } from '../components/HeritageVisual'
+import HeritageTimeline from '../features/timeline/HeritageTimeline'
 import { PixelBadge } from '../components/PixelArt'
 import { Storyteller } from '../features/ai/Storyteller'
 import { BentoCard, BentoGrid } from '../components/magicui/BentoGrid'
 import { usePassport } from '../lib/passport'
+import { cn } from '../lib/cn'
 import { NotFound } from './NotFound'
 
 export function CountryPage() {
@@ -19,7 +21,7 @@ export function CountryPage() {
   const earned = state.visitedCountries.includes(country.id)
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 pb-16">
+    <div className="mx-auto w-full max-w-5xl px-4 pb-16 relative z-10 bg-ink-950/90 backdrop-blur-sm min-h-screen">
       {/* Hero */}
       <div className="relative mt-4 overflow-hidden rounded-3xl">
         <HeritageVisual motif={country.motif} color={country.colors[0]} className="h-52 w-full sm:h-64" rounded="rounded-3xl" />
@@ -80,8 +82,17 @@ export function CountryPage() {
             to={`/site/${s.id}`}
             className="group relative flex overflow-hidden rounded-3xl glass transition hover:-translate-y-1"
           >
-            <div className="w-28 shrink-0 sm:w-32">
-              <HeritageVisual motif={s.motif} color={s.themeColor} className="h-full w-full" rounded="rounded-none" />
+            <div className="w-28 shrink-0 sm:w-32 overflow-hidden">
+              {s.imageUrl ? (
+                <img
+                  src={s.imageUrl}
+                  alt={s.name}
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden') }}
+                />
+              ) : null}
+              <HeritageVisual motif={s.motif} color={s.themeColor} className={cn("h-full w-full", s.imageUrl && "hidden")} rounded="rounded-none" />
             </div>
             <div className="min-w-0 flex-1 p-4">
               <div className="flex items-center gap-2">
@@ -106,6 +117,14 @@ export function CountryPage() {
             </div>
           </Link>
         ))}
+      </div>
+
+      {/* Heritage Timeline */}
+      <div className="mt-10">
+        <h2 className="mb-4 font-display text-xl font-bold flex items-center gap-2">
+          <Clock size={18} className="text-gold-400" /> Heritage Timeline
+        </h2>
+        <HeritageTimeline countryId={country.id} />
       </div>
 
       {/* AI Storyteller */}

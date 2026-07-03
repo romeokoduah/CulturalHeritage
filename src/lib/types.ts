@@ -13,6 +13,7 @@ export type Motif =
 export interface GalleryPanel {
   motif: Motif
   caption: string
+  imageUrl?: string
 }
 
 export interface HeritageSite {
@@ -36,6 +37,12 @@ export interface HeritageSite {
   /** A short greeting phrase in a local language, with pronunciation + meaning */
   greeting: { phrase: string; pronounce: string; meaning: string; language: string }
   themeColor: string
+  /** Real photo URL from Unsplash/Pexels */
+  imageUrl?: string
+  /** Approximate founding year for timeline (negative = BCE) */
+  foundedYear?: number
+  /** Preservation status */
+  preservationStatus?: string
 }
 
 export interface Country {
@@ -52,4 +59,15 @@ export interface Country {
   badgeLabel: string
   motif: Motif
   siteIds: string[]
+}
+
+export interface TimelineEvent {
+  year: number
+  yearLabel: string
+  title: string
+  description: string
+  imageUrl?: string
+  countryId: string
+  siteId?: string
+  era?: string
 }

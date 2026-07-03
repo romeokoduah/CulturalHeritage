@@ -100,46 +100,24 @@ export function Landing() {
           <GlobeExplorer onSelectCountry={setSelected} />
         </Suspense>
 
-        {/* Hero text overlay — static, no flickering animations */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 z-20 px-5 pt-6 text-center">
+        {/* Hero text overlay — positioned at top, does NOT cover the globe pins */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-20 px-5 pt-6 pb-4 text-center" style={{ maxHeight: '45%' }}>
           <div className="pointer-events-auto mx-auto inline-flex items-center gap-1.5 rounded-full border border-gold-400/20 bg-gold-400/10 px-4 py-1.5">
             <Sparkles size={13} className="text-gold-400" />
             <span className="text-xs font-semibold text-gold-400">AI for Cultural Heritage & Storytelling</span>
           </div>
 
-          <h1 className="mx-auto mt-6 max-w-3xl text-balance font-display text-4xl font-extrabold leading-[1.05] text-slate-50 [text-shadow:0_4px_40px_rgba(0,0,0,0.6)] sm:text-5xl md:text-6xl">
+          <h1 className="pointer-events-none mx-auto mt-4 max-w-3xl text-balance font-display text-3xl font-extrabold leading-[1.08] text-slate-50 [text-shadow:0_4px_40px_rgba(0,0,0,0.6)] sm:text-4xl md:text-5xl">
             Discover humanity's{' '}
             <span className="gradient-text">living heritage</span>
           </h1>
 
-          <p className="mx-auto mt-4 max-w-lg text-balance text-sm text-slate-200/80 [text-shadow:0_2px_16px_rgba(0,0,0,0.6)] sm:text-base">
-            Spin the globe, click on a pin, and let an AI storyteller bring its sites, languages and legends to life.
+          <p className="pointer-events-none mx-auto mt-3 max-w-md text-balance text-sm text-slate-200/70 [text-shadow:0_2px_16px_rgba(0,0,0,0.6)] sm:text-base">
+            Click any pin on the globe to explore
           </p>
-
-          <div className="pointer-events-auto mt-6">
-            <Link to={`/country/${COUNTRIES[0]?.id ?? 'ghana'}`}>
-              <ShimmerButton className="mx-auto font-semibold">
-                Start Exploring <ArrowRight size={16} className="ml-2" />
-              </ShimmerButton>
-            </Link>
-          </div>
         </div>
 
-        {/* Hint — no country pills list, just a simple instruction */}
-        <AnimatePresence>
-          {!selected && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="pointer-events-none absolute inset-x-0 bottom-6 z-20 text-center"
-            >
-              <p className="text-[11px] uppercase tracking-[0.25em] text-white/30">
-                click any pin on the globe to explore
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* No overlays blocking pins — globe is fully interactive */}
 
         {/* Country preview card — full details */}
         <AnimatePresence>

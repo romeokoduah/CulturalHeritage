@@ -110,6 +110,24 @@ body {
   color: transparent;
 }
 
+/* Light mode: darken gradient text for contrast on light backgrounds */
+html.light .gradient-text {
+  background: linear-gradient(120deg, #c9920a 0%, #c9402e 45%, #7c5cc5 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Light mode: fix text readability on sections with hardcoded dark backgrounds */
+html.light .bg-ink-950 {
+  color: rgb(var(--fg));
+}
+
+/* Light mode: ensure borders and glass stay readable */
+html.light [style*="border-white"] {
+  border-color: rgba(20, 30, 60, 0.08);
+}
+
 /* Globe pin entrance animation */
 @keyframes globePinEntrance {
   from {

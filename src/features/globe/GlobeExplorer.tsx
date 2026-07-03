@@ -429,15 +429,23 @@ export function GlobeExplorer({
         container.style.transform = 'scale(1)'
       })
 
-      // Click handler — all pins navigate to their page
+      // Click handler — site pins navigate, country pins show preview card
       container.addEventListener('click', (e) => {
         e.stopPropagation()
         if (pin.kind === 'site') {
           navigate(`/site/${pin.id}`)
         } else {
+          // Show the country preview card instead of navigating directly
           const country = COUNTRIES.find((c) => c.id === pin.countryId)
-          if (country) onSelectCountry(country)
-          navigate(`/country/${pin.countryId}`)
+          if (country) {
+            // Fly to the country
+            const g = globeRef.current
+            if (g) {
+              g.controls().autoRotate = false
+              g.pointOfView({ lat: country.coords[0], lng: country.coords[1], altitude: 1.6 }, 1200)
+            }
+            onSelectCountry(country)
+          }
         }
       })
 

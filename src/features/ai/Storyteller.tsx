@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Send, Sparkles, Square } from 'lucide-react'
 import { activeProvider, type ChatMessage, type StorytellerContext } from '../../lib/ai'
+import { DELEGATES } from '../../data/delegates'
 import { MascotGlobe } from '../../components/PixelArt'
 import { cn } from '../../lib/cn'
 
@@ -54,11 +55,20 @@ export function Storyteller({
 }) {
   const provider = activeProvider()
   const seed = context.site?.name ?? context.country?.name ?? 'this place'
+
+  // Resolve delegate from context
+  const countryId = context.site?.countryId || context.country?.id
+  const delegate = countryId ? DELEGATES[countryId] : undefined
+
+  const displayTitle = delegate ? `${delegate.name} — Heritage Guide` : title
+
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: uid(),
       role: 'assistant',
-      content: `Hi, I'm your heritage guide. Ask me anything about **${seed}** — its story, a local greeting, a surprising fact, or let me quiz you.`,
+      content: delegate
+        ? `Hi, I'm **${delegate.name}**, your heritage guide. Ask me anything about **${seed}** — its story, a local greeting, a surprising fact, or let me quiz you.`
+        : `Hi, I'm your heritage guide. Ask me anything about **${seed}** — its story, a local greeting, a surprising fact, or let me quiz you.`,
     },
   ])
   const [input, setInput] = useState('')
@@ -119,7 +129,18 @@ export function Storyteller({
       <header className="flex items-center gap-3 border-b border-white/10 px-4 py-3">
         <MascotGlobe size={34} animate={false} />
         <div className="min-w-0">
-          <h3 className="font-display text-sm font-semibold leading-tight">{title}</h3>
+          <h3 className="font-display text-sm font-semibold leading-tight">
+            {delegate ? (
+              <span className="bg-gradient-to-r from-gold-400 via-amber-300 to-gold-500 bg-clip-text text-transparent">
+                {delegate.name}
+              </span>
+            ) : (
+              displayTitle
+            )}
+            {delegate && (
+              <span className="ml-1.5 text-white/60 font-normal">— Heritage Guide</span>
+            )}
+          </h3>
           <p className="flex items-center gap-1 text-[11px] text-white/50">
             <Sparkles size={11} className="text-gold-400" />
             {provider.label}

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Send, Sparkles, Square } from 'lucide-react'
+import { Send, Sparkles, Square, Volume2, VolumeX } from 'lucide-react'
 import { activeProvider, type ChatMessage, type StorytellerContext } from '../../lib/ai'
 import { DELEGATES } from '../../data/delegates'
+import { speakWithDeepgram, stopSpeaking } from '../../lib/deepgram'
 import { MascotGlobe } from '../../components/PixelArt'
 import { cn } from '../../lib/cn'
 
@@ -170,7 +171,12 @@ export function Storyteller({
                   <Dot /> <Dot d="150ms" /> <Dot d="300ms" />
                 </span>
               ) : (
-                <RichText text={m.content} />
+                <>
+                  <RichText text={m.content} />
+                  {m.role === 'assistant' && m.content.length > 0 && (
+                    <SpeakButton text={m.content} />
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -223,6 +229,35 @@ export function Storyteller({
         )}
       </form>
     </div>
+  )
+}
+
+function SpeakButton({ text }: { text: string }) {
+  const [playing, setPlaying] = useState(false)
+  // Strip markdown for TTS
+  const clean = text.replace(/\*\*([^*]+)\*\*/g, '$1').replace(/_([^_]+)_/g, '$1')
+  return (
+    <button
+      onClick={() => {
+        if (playing) {
+          stopSpeaking()
+          setPlaying(false)
+        } else {
+          speakWithDeepgram(clean, {
+            onStart: () => setPlaying(true),
+            onEnd: () => setPlaying(false),
+          })
+        }
+      }}
+      className={cn(
+        'mt-1.5 flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium transition',
+        playing
+          ? 'bg-clay-400/20 text-clay-400 animate-pulse'
+          : 'bg-white/5 text-white/40 hover:text-white/70 hover:bg-white/10',
+      )}
+    >
+      {playing ? <><VolumeX size={10} /> Stop</> : <><Volume2 size={10} /> Listen</>}
+    </button>
   )
 }
 

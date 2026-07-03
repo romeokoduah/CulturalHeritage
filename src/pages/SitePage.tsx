@@ -1,7 +1,8 @@
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, BadgeCheck, Check, Lightbulb, MapPin, Volume2 } from 'lucide-react'
+import { ArrowLeft, BadgeCheck, Check, Lightbulb, MapPin, Volume2, VolumeX } from 'lucide-react'
 import { motion, useInView } from 'framer-motion'
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
+import { speakWithDeepgram, stopSpeaking } from '../lib/deepgram'
 import { SITES_BY_ID } from '../data/sites'
 import { COUNTRIES_BY_ID } from '../data/countries'
 import { DELEGATES } from '../data/delegates'
@@ -38,16 +39,7 @@ function AnimatedSection({ children, className }: { children: React.ReactNode; c
   )
 }
 
-function speak(text: string) {
-  try {
-    const u = new SpeechSynthesisUtterance(text)
-    u.rate = 0.85
-    window.speechSynthesis.cancel()
-    window.speechSynthesis.speak(u)
-  } catch {
-    /* not supported */
-  }
-}
+// Deepgram TTS is used via the speakWithDeepgram import
 
 const FACT_COLORS = [
   { bg: 'from-rose-500/20 to-pink-600/10', border: 'border-rose-500/20', text: 'text-rose-400' },
@@ -62,6 +54,7 @@ export function SitePage() {
   const { id = '' } = useParams()
   const site = SITES_BY_ID[id]
   const { isVisited, toggleSite } = usePassport()
+  const [isSpeaking, setIsSpeaking] = useState(false)
 
   if (!site) return <NotFound />
   const country = COUNTRIES_BY_ID[site.countryId]
@@ -200,12 +193,28 @@ export function SitePage() {
                 </p>
               </div>
               <button
-                onClick={() => speak(site.greeting.phrase)}
-                className="ml-auto grid h-12 w-12 shrink-0 place-items-center rounded-full text-white transition hover:scale-105"
-                style={{ backgroundColor: `${accentColor}30` }}
-                aria-label="Pronounce"
+                onClick={() => {
+                  if (isSpeaking) {
+                    stopSpeaking()
+                    setIsSpeaking(false)
+                  } else {
+                    speakWithDeepgram(
+                      `${site.greeting.phrase}. This means: ${site.greeting.meaning}, in ${site.greeting.language}.`,
+                      {
+                        onStart: () => setIsSpeaking(true),
+                        onEnd: () => setIsSpeaking(false),
+                      },
+                    )
+                  }
+                }}
+                className={cn(
+                  'ml-auto grid h-12 w-12 shrink-0 place-items-center rounded-full text-white transition hover:scale-105',
+                  isSpeaking && 'animate-pulse',
+                )}
+                style={{ backgroundColor: isSpeaking ? `${accentColor}60` : `${accentColor}30` }}
+                aria-label={isSpeaking ? 'Stop speaking' : 'Pronounce'}
               >
-                <Volume2 size={20} />
+                {isSpeaking ? <VolumeX size={20} /> : <Volume2 size={20} />}
               </button>
             </div>
           </div>
@@ -214,7 +223,30 @@ export function SitePage() {
 
       {/* Story */}
       <AnimatedSection className="mt-8">
-        <h2 className="font-display text-xl font-bold">The story</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="font-display text-xl font-bold">The story</h2>
+          <button
+            onClick={() => {
+              if (isSpeaking) {
+                stopSpeaking()
+                setIsSpeaking(false)
+              } else {
+                speakWithDeepgram(site.story, {
+                  onStart: () => setIsSpeaking(true),
+                  onEnd: () => setIsSpeaking(false),
+                })
+              }
+            }}
+            className={cn(
+              'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition',
+              isSpeaking
+                ? 'bg-clay-400/20 text-clay-400 animate-pulse'
+                : 'bg-white/5 text-white/50 hover:text-white hover:bg-white/10',
+            )}
+          >
+            {isSpeaking ? <><VolumeX size={13} /> Stop</> : <><Volume2 size={13} /> Listen</>}
+          </button>
+        </div>
         <div className="mt-3 flex gap-4">
           <div
             className="w-1 shrink-0 rounded-full"

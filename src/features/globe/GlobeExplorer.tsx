@@ -5,15 +5,25 @@ import { COUNTRIES } from '../../data/countries'
 import { SITES } from '../../data/sites'
 import type { Country } from '../../lib/types'
 
-interface MarkerDatum {
+/* ── Types ── */
+
+interface SiteMarker {
   id: string
-  kind: 'country' | 'site'
   lat: number
   lng: number
   label: string
   color: string
   size: number
   countryId: string
+}
+
+interface CountryPin {
+  id: string
+  lat: number
+  lng: number
+  name: string
+  color: string
+  emojiFlag: string
 }
 
 interface MapLayer {
@@ -32,6 +42,8 @@ const MAP_LAYERS: MapLayer[] = [
   { id: 'dark', label: 'Dark', icon: '🛰️', url: 'https://unpkg.com/three-globe/example/img/earth-dark.jpg', atmosphereColor: '#3a3a6a' },
 ]
 
+/* ── Component ── */
+
 export function GlobeExplorer({
   onSelectCountry,
 }: {
@@ -47,49 +59,51 @@ export function GlobeExplorer({
 
   const currentLayer = MAP_LAYERS.find((l) => l.id === activeLayer) || MAP_LAYERS[0]
 
-  // Static point markers — no DOM elements, no flickering
-  const markers = useMemo<MarkerDatum[]>(() => {
-    const countryMarkers: MarkerDatum[] = COUNTRIES.map((c) => ({
-      id: c.id,
-      kind: 'country' as const,
-      lat: c.coords[0],
-      lng: c.coords[1],
-      label: `${c.emojiFlag} ${c.name}`,
-      color: c.colors[1],
-      size: 0.7,
-      countryId: c.id,
-    }))
-    const siteMarkers: MarkerDatum[] = SITES.map((s) => ({
-      id: s.id,
-      kind: 'site' as const,
-      lat: s.coords[0],
-      lng: s.coords[1],
-      label: s.name,
-      color: s.themeColor,
-      size: 0.3,
-      countryId: s.countryId,
-    }))
-    return [...countryMarkers, ...siteMarkers]
-  }, [])
+  /* ── Site markers: GPU-rendered static dots (no flicker) ── */
+  const siteMarkers = useMemo<SiteMarker[]>(
+    () =>
+      SITES.map((s) => ({
+        id: s.id,
+        lat: s.coords[0],
+        lng: s.coords[1],
+        label: s.name,
+        color: s.themeColor,
+        size: 0.25,
+        countryId: s.countryId,
+      })),
+    [],
+  )
+
+  /* ── Country pins: HTML elements with location pin + flag (only 45, stable) ── */
+  const countryPins = useMemo<CountryPin[]>(
+    () =>
+      COUNTRIES.map((c) => ({
+        id: c.id,
+        lat: c.coords[0],
+        lng: c.coords[1],
+        name: c.name,
+        color: c.colors[1],
+        emojiFlag: c.emojiFlag,
+      })),
+    [],
+  )
 
   const ringsData = useMemo(
     () => COUNTRIES.map((c) => ({ lat: c.coords[0], lng: c.coords[1], color: c.colors[1] })),
     [],
   )
 
-  // Responsive sizing
+  /* ── Responsive sizing ── */
   useEffect(() => {
     const el = wrapRef.current
     if (!el) return
-    const ro = new ResizeObserver(() => {
-      setDims({ w: el.clientWidth, h: el.clientHeight })
-    })
+    const ro = new ResizeObserver(() => setDims({ w: el.clientWidth, h: el.clientHeight }))
     ro.observe(el)
     setDims({ w: el.clientWidth, h: el.clientHeight })
     return () => ro.disconnect()
   }, [])
 
-  // Auto-rotate + initial view
+  /* ── Auto-rotate + initial view ── */
   useEffect(() => {
     const g = globeRef.current
     if (!g) return
@@ -103,14 +117,36 @@ export function GlobeExplorer({
     setReady(true)
   }, [])
 
-  // Click handler — stable, works on every pin
-  const handlePointClick = useCallback(
-    (point: object) => {
-      const m = point as MarkerDatum
-      if (m.kind === 'site') {
-        navigate(`/site/${m.id}`)
-      } else {
-        const country = COUNTRIES.find((c) => c.id === m.countryId)
+  /* ── Country pin HTML element factory ── */
+  const countryPinFactory = useCallback(
+    (d: object) => {
+      const pin = d as CountryPin
+
+      const el = document.createElement('div')
+      el.style.cssText = 'cursor:pointer;text-align:center;transition:transform 0.2s;'
+
+      // Location pin SVG with country color
+      el.innerHTML = `
+        <div style="position:relative;display:inline-block;">
+          <svg width="32" height="42" viewBox="0 0 32 42" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 40 C16 40 3 25 3 14 A13 13 0 1 1 29 14 C29 25 16 40 16 40Z"
+                  fill="${pin.color}" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+            <circle cx="16" cy="14" r="6" fill="rgba(255,255,255,0.3)"/>
+          </svg>
+          <div style="position:absolute;top:5px;left:50%;transform:translateX(-50%);font-size:13px;line-height:1;pointer-events:none;">
+            ${pin.emojiFlag}
+          </div>
+        </div>
+      `
+
+      // Hover: scale up
+      el.addEventListener('mouseenter', () => { el.style.transform = 'scale(1.25)' })
+      el.addEventListener('mouseleave', () => { el.style.transform = 'scale(1)' })
+
+      // Click: fly to country + show preview
+      el.addEventListener('click', (e) => {
+        e.stopPropagation()
+        const country = COUNTRIES.find((c) => c.id === pin.id)
         if (country) {
           const g = globeRef.current
           if (g) {
@@ -119,9 +155,21 @@ export function GlobeExplorer({
           }
           onSelectCountry(country)
         }
-      }
+      })
+
+      return el
     },
-    [navigate, onSelectCountry],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  )
+
+  /* ── Site dot click handler ── */
+  const handleSiteClick = useCallback(
+    (point: object) => {
+      const m = point as SiteMarker
+      navigate(`/site/${m.id}`)
+    },
+    [navigate],
   )
 
   return (
@@ -145,19 +193,26 @@ export function GlobeExplorer({
         showAtmosphere
         atmosphereColor={currentLayer.atmosphereColor}
         atmosphereAltitude={0.22}
-        /* Static point markers — GPU-rendered, no flicker */
-        pointsData={markers}
-        pointLat={(d) => (d as MarkerDatum).lat}
-        pointLng={(d) => (d as MarkerDatum).lng}
-        pointColor={(d) => (d as MarkerDatum).color}
-        pointAltitude={(d) => ((d as MarkerDatum).kind === 'country' ? 0.12 : 0.03)}
-        pointRadius={(d) => (d as MarkerDatum).size}
+        /* ── Site markers: GPU static dots ── */
+        pointsData={siteMarkers}
+        pointLat={(d) => (d as SiteMarker).lat}
+        pointLng={(d) => (d as SiteMarker).lng}
+        pointColor={(d) => (d as SiteMarker).color}
+        pointAltitude={0.01}
+        pointRadius={(d) => (d as SiteMarker).size}
         pointLabel={(d) => {
-          const m = d as MarkerDatum
-          return `<div style="font-family:Inter,sans-serif;background:rgba(7,10,20,0.85);border:1px solid rgba(255,255,255,0.15);padding:6px 12px;border-radius:10px;font-size:12px;color:#fff;backdrop-filter:blur(8px);box-shadow:0 6px 24px rgba(0,0,0,0.5);pointer-events:none;white-space:nowrap">${m.label}</div>`
+          const m = d as SiteMarker
+          return `<div style="font-family:Inter,sans-serif;background:rgba(7,10,20,0.9);border:1px solid rgba(255,255,255,0.15);padding:6px 12px;border-radius:10px;font-size:12px;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,0.5);white-space:nowrap">${m.label}</div>`
         }}
-        onPointClick={handlePointClick}
-        /* Pulse rings around countries */
+        onPointClick={handleSiteClick}
+        /* ── Country pins: HTML location markers with flags ── */
+        htmlElementsData={countryPins}
+        htmlLat={(d: object) => (d as CountryPin).lat}
+        htmlLng={(d: object) => (d as CountryPin).lng}
+        htmlAltitude={0.06}
+        htmlElement={countryPinFactory}
+        htmlTransitionDuration={0}
+        /* ── Pulse rings ── */
         ringsData={ringsData}
         ringLat={(d: object) => (d as { lat: number }).lat}
         ringLng={(d: object) => (d as { lng: number }).lng}

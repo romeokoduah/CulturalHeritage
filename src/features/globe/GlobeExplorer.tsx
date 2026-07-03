@@ -5,25 +5,22 @@ import { COUNTRIES } from '../../data/countries'
 import { SITES } from '../../data/sites'
 import type { Country } from '../../lib/types'
 
-/* ── Types ── */
-
 interface SiteMarker {
   id: string
   lat: number
   lng: number
   label: string
   color: string
-  size: number
   countryId: string
 }
 
-interface CountryPin {
+interface CountryMarker {
   id: string
   lat: number
   lng: number
   name: string
+  flag: string
   color: string
-  emojiFlag: string
 }
 
 interface MapLayer {
@@ -31,69 +28,56 @@ interface MapLayer {
   label: string
   icon: string
   url: string
-  atmosphereColor: string
+  atmo: string
 }
 
-const MAP_LAYERS: MapLayer[] = [
-  { id: 'night', label: 'Night', icon: '🌙', url: 'https://unpkg.com/three-globe/example/img/earth-night.jpg', atmosphereColor: '#6aa4ff' },
-  { id: 'day', label: 'Day', icon: '☀️', url: 'https://unpkg.com/three-globe/example/img/earth-day.jpg', atmosphereColor: '#87ceeb' },
-  { id: 'blue-marble', label: 'Blue Marble', icon: '🌊', url: 'https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg', atmosphereColor: '#4a90d9' },
-  { id: 'topology', label: 'Topology', icon: '🏔️', url: 'https://unpkg.com/three-globe/example/img/earth-topology.png', atmosphereColor: '#8fbc8f' },
-  { id: 'dark', label: 'Dark', icon: '🛰️', url: 'https://unpkg.com/three-globe/example/img/earth-dark.jpg', atmosphereColor: '#3a3a6a' },
+const LAYERS: MapLayer[] = [
+  { id: 'night', label: 'Night', icon: '🌙', url: 'https://unpkg.com/three-globe/example/img/earth-night.jpg', atmo: '#6aa4ff' },
+  { id: 'day', label: 'Day', icon: '☀️', url: 'https://unpkg.com/three-globe/example/img/earth-day.jpg', atmo: '#87ceeb' },
+  { id: 'blue', label: 'Blue Marble', icon: '🌊', url: 'https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg', atmo: '#4a90d9' },
+  { id: 'topo', label: 'Topology', icon: '🏔️', url: 'https://unpkg.com/three-globe/example/img/earth-topology.png', atmo: '#8fbc8f' },
+  { id: 'dark', label: 'Dark', icon: '🛰️', url: 'https://unpkg.com/three-globe/example/img/earth-dark.jpg', atmo: '#3a3a6a' },
 ]
 
-/* ── Component ── */
+// Pre-build a data URL for each country's flag pin so it's static/cached
+function flagPinDataUrl(flag: string, color: string): string {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="50" viewBox="0 0 40 50">
+    <path d="M20 48C20 48 4 30 4 17A16 16 0 1 1 36 17C36 30 20 48 20 48Z" fill="${color}" stroke="#fff" stroke-width="2" stroke-opacity="0.7"/>
+    <circle cx="20" cy="17" r="10" fill="#fff" fill-opacity="0.9"/>
+    <text x="20" y="22" text-anchor="middle" font-size="14">${flag}</text>
+  </svg>`
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
+}
 
-export function GlobeExplorer({
-  onSelectCountry,
-}: {
-  onSelectCountry: (c: Country) => void
-}) {
+export function GlobeExplorer({ onSelectCountry }: { onSelectCountry: (c: Country) => void }) {
   const globeRef = useRef<GlobeMethods | undefined>(undefined)
   const wrapRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
   const [dims, setDims] = useState({ w: 360, h: 480 })
   const [ready, setReady] = useState(false)
-  const [activeLayer, setActiveLayer] = useState<string>('night')
-  const [layerPanelOpen, setLayerPanelOpen] = useState(false)
+  const [layer, setLayer] = useState('night')
+  const [layerOpen, setLayerOpen] = useState(false)
 
-  const currentLayer = MAP_LAYERS.find((l) => l.id === activeLayer) || MAP_LAYERS[0]
+  const cur = LAYERS.find((l) => l.id === layer) || LAYERS[0]
 
-  /* ── Site markers: GPU-rendered static dots (no flicker) ── */
-  const siteMarkers = useMemo<SiteMarker[]>(
-    () =>
-      SITES.map((s) => ({
-        id: s.id,
-        lat: s.coords[0],
-        lng: s.coords[1],
-        label: s.name,
-        color: s.themeColor,
-        size: 0.25,
-        countryId: s.countryId,
-      })),
+  // Site dots (GPU rendered — stable, no flicker)
+  const sites = useMemo<SiteMarker[]>(
+    () => SITES.map((s) => ({ id: s.id, lat: s.coords[0], lng: s.coords[1], label: s.name, color: s.themeColor, countryId: s.countryId })),
     [],
   )
 
-  /* ── Country pins: HTML elements with location pin + flag (only 45, stable) ── */
-  const countryPins = useMemo<CountryPin[]>(
-    () =>
-      COUNTRIES.map((c) => ({
-        id: c.id,
-        lat: c.coords[0],
-        lng: c.coords[1],
-        name: c.name,
-        color: c.colors[1],
-        emojiFlag: c.emojiFlag,
-      })),
+  // Country markers — use labelsData with flag pin images (static, no DOM flicker)
+  const countries = useMemo<CountryMarker[]>(
+    () => COUNTRIES.map((c) => ({ id: c.id, lat: c.coords[0], lng: c.coords[1], name: c.name, flag: c.emojiFlag, color: c.colors[1] })),
     [],
   )
 
-  const ringsData = useMemo(
+  const rings = useMemo(
     () => COUNTRIES.map((c) => ({ lat: c.coords[0], lng: c.coords[1], color: c.colors[1] })),
     [],
   )
 
-  /* ── Responsive sizing ── */
+  // Responsive sizing
   useEffect(() => {
     const el = wrapRef.current
     if (!el) return
@@ -103,74 +87,37 @@ export function GlobeExplorer({
     return () => ro.disconnect()
   }, [])
 
-  /* ── Auto-rotate + initial view ── */
+  // Auto-rotate + initial view
   useEffect(() => {
     const g = globeRef.current
     if (!g) return
-    const controls = g.controls()
-    controls.autoRotate = true
-    controls.autoRotateSpeed = 0.6
-    controls.enableZoom = true
-    controls.minDistance = 180
-    controls.maxDistance = 520
+    const c = g.controls()
+    c.autoRotate = true
+    c.autoRotateSpeed = 0.6
+    c.enableZoom = true
+    c.minDistance = 180
+    c.maxDistance = 520
     g.pointOfView({ lat: 20, lng: 60, altitude: 2.4 }, 0)
     setReady(true)
   }, [])
 
-  /* ── Country pin HTML element factory ── */
-  const countryPinFactory = useCallback(
-    (d: object) => {
-      const pin = d as CountryPin
+  // Click on a site dot
+  const onSiteClick = useCallback((p: object) => {
+    navigate(`/site/${(p as SiteMarker).id}`)
+  }, [navigate])
 
-      const el = document.createElement('div')
-      el.style.cssText = 'cursor:pointer;text-align:center;transition:transform 0.2s;'
-
-      // Location pin SVG with country color
-      el.innerHTML = `
-        <div style="position:relative;display:inline-block;">
-          <svg width="32" height="42" viewBox="0 0 32 42" xmlns="http://www.w3.org/2000/svg">
-            <path d="M16 40 C16 40 3 25 3 14 A13 13 0 1 1 29 14 C29 25 16 40 16 40Z"
-                  fill="${pin.color}" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
-            <circle cx="16" cy="14" r="6" fill="rgba(255,255,255,0.3)"/>
-          </svg>
-          <div style="position:absolute;top:5px;left:50%;transform:translateX(-50%);font-size:13px;line-height:1;pointer-events:none;">
-            ${pin.emojiFlag}
-          </div>
-        </div>
-      `
-
-      // Hover: scale up
-      el.addEventListener('mouseenter', () => { el.style.transform = 'scale(1.25)' })
-      el.addEventListener('mouseleave', () => { el.style.transform = 'scale(1)' })
-
-      // Click: fly to country + show preview
-      el.addEventListener('click', (e) => {
-        e.stopPropagation()
-        const country = COUNTRIES.find((c) => c.id === pin.id)
-        if (country) {
-          const g = globeRef.current
-          if (g) {
-            g.controls().autoRotate = false
-            g.pointOfView({ lat: country.coords[0], lng: country.coords[1], altitude: 1.6 }, 1200)
-          }
-          onSelectCountry(country)
-        }
-      })
-
-      return el
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  )
-
-  /* ── Site dot click handler ── */
-  const handleSiteClick = useCallback(
-    (point: object) => {
-      const m = point as SiteMarker
-      navigate(`/site/${m.id}`)
-    },
-    [navigate],
-  )
+  // Click on a country label/pin
+  const onCountryClick = useCallback((p: object) => {
+    const m = p as CountryMarker
+    const country = COUNTRIES.find((c) => c.id === m.id)
+    if (!country) return
+    const g = globeRef.current
+    if (g) {
+      g.controls().autoRotate = false
+      g.pointOfView({ lat: country.coords[0], lng: country.coords[1], altitude: 1.6 }, 1200)
+    }
+    onSelectCountry(country)
+  }, [onSelectCountry])
 
   return (
     <div ref={wrapRef} className="absolute inset-0 h-full w-full">
@@ -188,32 +135,74 @@ export function GlobeExplorer({
         width={dims.w}
         height={dims.h}
         backgroundColor="rgba(0,0,0,0)"
-        globeImageUrl={currentLayer.url}
+        globeImageUrl={cur.url}
         bumpImageUrl="https://unpkg.com/three-globe/example/img/earth-topology.png"
         showAtmosphere
-        atmosphereColor={currentLayer.atmosphereColor}
+        atmosphereColor={cur.atmo}
         atmosphereAltitude={0.22}
-        /* ── Site markers: GPU static dots ── */
-        pointsData={siteMarkers}
+
+        // ── Site dots (GPU, static, no flicker) ──
+        pointsData={sites}
         pointLat={(d) => (d as SiteMarker).lat}
         pointLng={(d) => (d as SiteMarker).lng}
         pointColor={(d) => (d as SiteMarker).color}
-        pointAltitude={0.01}
-        pointRadius={(d) => (d as SiteMarker).size}
+        pointAltitude={0.008}
+        pointRadius={0.2}
         pointLabel={(d) => {
           const m = d as SiteMarker
-          return `<div style="font-family:Inter,sans-serif;background:rgba(7,10,20,0.9);border:1px solid rgba(255,255,255,0.15);padding:6px 12px;border-radius:10px;font-size:12px;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,0.5);white-space:nowrap">${m.label}</div>`
+          return `<div style="font-family:Inter,sans-serif;background:rgba(7,10,20,0.9);border:1px solid rgba(255,255,255,0.15);padding:5px 10px;border-radius:8px;font-size:11px;color:#fff;white-space:nowrap">${m.label}</div>`
         }}
-        onPointClick={handleSiteClick}
-        /* ── Country pins: HTML location markers with flags ── */
-        htmlElementsData={countryPins}
-        htmlLat={(d: object) => (d as CountryPin).lat}
-        htmlLng={(d: object) => (d as CountryPin).lng}
-        htmlAltitude={0.06}
-        htmlElement={countryPinFactory}
+        onPointClick={onSiteClick}
+
+        // ── Country flag pins (custom labels layer — static images, clickable) ──
+        labelsData={countries}
+        labelLat={(d: object) => (d as CountryMarker).lat}
+        labelLng={(d: object) => (d as CountryMarker).lng}
+        labelText={() => ''}
+        labelSize={0}
+        labelDotRadius={0}
+        labelAltitude={0.015}
+        labelLabel={(d: object) => {
+          const m = d as CountryMarker
+          return `<div style="font-family:Inter,sans-serif;background:rgba(7,10,20,0.9);border:1px solid rgba(255,255,255,0.15);padding:6px 12px;border-radius:10px;font-size:12px;color:#fff;white-space:nowrap">${m.flag} ${m.name}</div>`
+        }}
+        onLabelClick={onCountryClick}
+
+        // ── Country HTML pin icons (location markers with flags) ──
+        htmlElementsData={countries}
+        htmlLat={(d: object) => (d as CountryMarker).lat}
+        htmlLng={(d: object) => (d as CountryMarker).lng}
+        htmlAltitude={0.02}
         htmlTransitionDuration={0}
-        /* ── Pulse rings ── */
-        ringsData={ringsData}
+        htmlElement={(d: object) => {
+          const m = d as CountryMarker
+          const el = document.createElement('div')
+          el.style.cssText = 'cursor:pointer;pointer-events:auto;transition:transform 0.15s;'
+          const img = document.createElement('img')
+          img.src = flagPinDataUrl(m.flag, m.color)
+          img.width = 36
+          img.height = 45
+          img.style.cssText = 'display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));'
+          img.draggable = false
+          el.appendChild(img)
+          el.onmouseenter = () => { el.style.transform = 'scale(1.3)' }
+          el.onmouseleave = () => { el.style.transform = 'scale(1)' }
+          el.onclick = (e) => {
+            e.stopPropagation()
+            const country = COUNTRIES.find((c) => c.id === m.id)
+            if (!country) return
+            const g = globeRef.current
+            if (g) {
+              g.controls().autoRotate = false
+              g.pointOfView({ lat: country.coords[0], lng: country.coords[1], altitude: 1.6 }, 1200)
+            }
+            onSelectCountry(country)
+          }
+          return el
+        }}
+
+        // ── Pulse rings ──
+        ringsData={rings}
         ringLat={(d: object) => (d as { lat: number }).lat}
         ringLng={(d: object) => (d as { lng: number }).lng}
         ringColor={(d: object) => {
@@ -225,51 +214,30 @@ export function GlobeExplorer({
         ringRepeatPeriod={1400}
       />
 
-      {/* Map Layer Switcher */}
+      {/* Layer Switcher */}
       {ready && (
-        <div style={{ position: 'absolute', bottom: '24px', right: '24px', zIndex: 20, fontFamily: 'Inter, system-ui, sans-serif' }}>
+        <div style={{ position: 'absolute', bottom: 24, right: 24, zIndex: 20, fontFamily: 'Inter,sans-serif' }}>
           <button
-            onClick={() => setLayerPanelOpen((v) => !v)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px',
-              background: 'rgba(7,10,20,0.7)', backdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
-              color: '#fff', fontSize: '12px', cursor: 'pointer',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
-            }}
+            onClick={() => setLayerOpen((v) => !v)}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: 'rgba(7,10,20,0.7)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: '#fff', fontSize: 12, cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}
           >
-            <span style={{ fontSize: '14px' }}>{currentLayer.icon}</span>
-            <span>{currentLayer.label}</span>
-            <span style={{ fontSize: '10px', opacity: 0.5, transform: layerPanelOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>▲</span>
+            <span style={{ fontSize: 14 }}>{cur.icon}</span>
+            <span>{cur.label}</span>
+            <span style={{ fontSize: 10, opacity: 0.5, transform: layerOpen ? 'rotate(180deg)' : '', transition: 'transform 0.2s' }}>▲</span>
           </button>
-
-          {layerPanelOpen && (
-            <div style={{
-              position: 'absolute', bottom: '100%', right: 0, marginBottom: '8px',
-              background: 'rgba(7,10,20,0.85)', backdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px',
-              padding: '6px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', minWidth: '160px',
-            }}>
-              {MAP_LAYERS.map((layer) => {
-                const isActive = layer.id === activeLayer
-                return (
-                  <button
-                    key={layer.id}
-                    onClick={() => { setActiveLayer(layer.id); setLayerPanelOpen(false) }}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: '8px', width: '100%',
-                      padding: '8px 12px', background: isActive ? 'rgba(255,255,255,0.1)' : 'transparent',
-                      border: 'none', borderRadius: '8px',
-                      color: isActive ? '#fff' : 'rgba(255,255,255,0.65)',
-                      fontSize: '12px', cursor: 'pointer', textAlign: 'left',
-                    }}
-                  >
-                    <span style={{ fontSize: '14px', width: '20px', textAlign: 'center' }}>{layer.icon}</span>
-                    <span style={{ flex: 1, fontWeight: isActive ? 600 : 400 }}>{layer.label}</span>
-                    {isActive && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4fc3f7' }} />}
-                  </button>
-                )
-              })}
+          {layerOpen && (
+            <div style={{ position: 'absolute', bottom: '100%', right: 0, marginBottom: 8, background: 'rgba(7,10,20,0.85)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: 6, boxShadow: '0 8px 32px rgba(0,0,0,0.5)', minWidth: 160 }}>
+              {LAYERS.map((l) => (
+                <button
+                  key={l.id}
+                  onClick={() => { setLayer(l.id); setLayerOpen(false) }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 12px', background: l.id === layer ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', borderRadius: 8, color: l.id === layer ? '#fff' : 'rgba(255,255,255,0.65)', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}
+                >
+                  <span style={{ fontSize: 14, width: 20, textAlign: 'center' }}>{l.icon}</span>
+                  <span style={{ flex: 1, fontWeight: l.id === layer ? 600 : 400 }}>{l.label}</span>
+                  {l.id === layer && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#4fc3f7' }} />}
+                </button>
+              ))}
             </div>
           )}
         </div>

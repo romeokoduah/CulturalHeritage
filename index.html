@@ -13,6 +13,18 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=Press+Start+2P&display=swap" rel="stylesheet" />
     <title>CultureSphere · AI for Cultural Heritage</title>
+    <script>
+      // Apply the saved (or system) theme before first paint to avoid a flash.
+      (function () {
+        try {
+          var s = localStorage.getItem('culturesphere.theme')
+          var light =
+            s === 'light' ||
+            (!s && window.matchMedia('(prefers-color-scheme: light)').matches)
+          if (light) document.documentElement.classList.add('light')
+        } catch (e) {}
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

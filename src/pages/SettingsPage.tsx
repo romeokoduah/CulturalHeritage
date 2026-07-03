@@ -20,7 +20,7 @@ export function SettingsPage() {
   return (
     <div className="mx-auto w-full max-w-2xl px-4 pb-16">
       <div className="mt-6 flex items-center gap-3">
-        <span className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-gold-400 to-clay-500 text-ink-950">
+        <span className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-gold-400 to-clay-500 text-abyss">
           <Bot size={22} />
         </span>
         <div>
@@ -58,7 +58,7 @@ export function SettingsPage() {
             />
             <button
               onClick={save}
-              className="rounded-2xl bg-gold-400 px-5 py-3 text-sm font-semibold text-ink-950 transition hover:brightness-105"
+              className="rounded-2xl bg-gold-400 px-5 py-3 text-sm font-semibold text-abyss transition hover:brightness-105"
             >
               Save key
             </button>

@@ -56,7 +56,7 @@ export function PassportPage() {
         <div className="rounded-3xl glass p-8 text-center">
           <Sparkles className="mx-auto text-gold-400" />
           <p className="mt-3 text-white/60">No stamps yet. Spin the globe and mark a site as visited to earn your first badge.</p>
-          <Link to="/" className="mt-4 inline-block rounded-full bg-gold-400 px-5 py-2.5 text-sm font-semibold text-ink-950">
+          <Link to="/" className="mt-4 inline-block rounded-full bg-gold-400 px-5 py-2.5 text-sm font-semibold text-abyss">
             Start exploring
           </Link>
         </div>

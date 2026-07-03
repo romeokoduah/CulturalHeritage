@@ -1,8 +1,25 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
-import { Globe2, Compass, BookMarked, Settings } from 'lucide-react'
+import { Globe2, Compass, BookMarked, Settings, Moon, Sun } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { usePassport } from '../lib/passport'
 import { SITES } from '../data/sites'
+import { useTheme, toggleTheme } from '../lib/theme'
+
+function ThemeToggle() {
+  const theme = useTheme()
+  const isLight = theme === 'light'
+  return (
+    <button
+      type="button"
+      onClick={toggleTheme}
+      aria-label={isLight ? 'Switch to dark mode' : 'Switch to light mode'}
+      title={isLight ? 'Switch to dark mode' : 'Switch to light mode'}
+      className="grid h-8 w-8 place-items-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-gold-400/40 hover:text-gold-400"
+    >
+      {isLight ? <Moon size={16} /> : <Sun size={16} />}
+    </button>
+  )
+}
 
 const NAV = [
   { to: '/', label: 'Explore', icon: Globe2, end: true },
@@ -21,7 +38,7 @@ export function AppShell() {
       <header className="safe-top sticky top-0 z-40 border-b border-white/5 bg-ink-950/70 backdrop-blur-xl">
         <div className="mx-auto flex h-14 w-full max-w-5xl items-center gap-3 px-4">
           <Link to="/" className="flex items-center gap-2">
-            <span className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-gold-400 to-clay-500 text-ink-950">
+            <span className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-gold-400 to-clay-500 text-abyss">
               <Compass size={18} />
             </span>
             <span className="font-display text-base font-bold tracking-tight">
@@ -52,6 +69,7 @@ export function AppShell() {
               </div>
               {pct}%
             </div>
+            <ThemeToggle />
           </div>
         </div>
       </header>

@@ -3,8 +3,39 @@
 @tailwind utilities;
 
 :root {
+  /* Dark theme (default). Values are space-separated RGB channels so they can
+     be consumed as rgb(var(--token) / <alpha>). */
   color-scheme: dark;
   --gap: 1.5rem;
+  --fg: 238 241 251;
+  --ink-950: 7 10 20;
+  --ink-900: 11 16 32;
+  --ink-800: 17 24 52;
+  --ink-700: 26 35 72;
+
+  --grid-line: rgba(255, 255, 255, 0.04);
+  --glass-bg: rgba(17, 24, 52, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --scroll-track: #0b1020;
+  --scroll-thumb: #1a2348;
+  --scroll-thumb-hover: #2a3568;
+}
+
+html.light {
+  /* Light theme — cool parchment surfaces with dark navy foreground. */
+  color-scheme: light;
+  --fg: 27 33 54;
+  --ink-950: 247 248 252;
+  --ink-900: 238 241 249;
+  --ink-800: 226 231 244;
+  --ink-700: 214 221 240;
+
+  --grid-line: rgba(20, 30, 60, 0.05);
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-border: rgba(20, 30, 60, 0.08);
+  --scroll-track: #e6eaf5;
+  --scroll-thumb: #c4cee6;
+  --scroll-thumb-hover: #aab8dc;
 }
 
 * {
@@ -20,10 +51,11 @@ body,
 body {
   margin: 0;
   font-family: 'Inter', system-ui, sans-serif;
-  background: #070a14;
-  color: #eef1fb;
+  background: rgb(var(--ink-950));
+  color: rgb(var(--fg));
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 ::-webkit-scrollbar {
@@ -31,14 +63,14 @@ body {
   height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: #0b1020;
+  background: var(--scroll-track);
 }
 ::-webkit-scrollbar-thumb {
-  background: #1a2348;
+  background: var(--scroll-thumb);
   border-radius: 8px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #2a3568;
+  background: var(--scroll-thumb-hover);
 }
 
 @layer utilities {
@@ -46,15 +78,15 @@ body {
     text-wrap: balance;
   }
   .bg-grid {
-    background-image: linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-image: linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
     background-size: 44px 44px;
   }
   .glass {
-    background: rgba(17, 24, 52, 0.55);
+    background: var(--glass-bg);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--glass-border);
   }
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0px);

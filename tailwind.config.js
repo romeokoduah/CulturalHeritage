@@ -9,12 +9,18 @@ export default {
         pixel: ['"Press Start 2P"', 'monospace'],
       },
       colors: {
+        // Theme-driven surface scale (flips between dark/light via CSS vars)
         ink: {
-          950: '#070a14',
-          900: '#0b1020',
-          800: '#111834',
-          700: '#1a2348',
+          950: 'rgb(var(--ink-950) / <alpha-value>)',
+          900: 'rgb(var(--ink-900) / <alpha-value>)',
+          800: 'rgb(var(--ink-800) / <alpha-value>)',
+          700: 'rgb(var(--ink-700) / <alpha-value>)',
         },
+        // `white` is remapped to the theme foreground so every text-white/xx,
+        // bg-white/xx and border-white/xx utility flips automatically.
+        white: 'rgb(var(--fg) / <alpha-value>)',
+        // Constant near-black for dark text sitting on gold/accent surfaces.
+        abyss: '#070a14',
         gold: {
           300: '#ffe6a3',
           400: '#ffd166',

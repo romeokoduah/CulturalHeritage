@@ -30,7 +30,7 @@ export function SketchfabViewer({ site }: { site: HeritageSite }) {
             {hasModel ? (
               <button
                 onClick={() => setLoaded(true)}
-                className="flex items-center gap-2 rounded-full bg-white/90 px-5 py-2.5 text-sm font-semibold text-ink-950 shadow-xl transition hover:scale-105"
+                className="flex items-center gap-2 rounded-full bg-white/90 px-5 py-2.5 text-sm font-semibold text-abyss shadow-xl transition hover:scale-105"
               >
                 <Play size={16} /> View in 3D
               </button>

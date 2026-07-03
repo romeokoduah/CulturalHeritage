@@ -76,7 +76,7 @@ export function SitePage() {
           'mt-4 flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 font-semibold transition',
           visited
             ? 'bg-jade-500/15 text-jade-400 ring-1 ring-jade-500/30'
-            : 'bg-gradient-to-r from-gold-400 to-clay-500 text-ink-950 hover:brightness-105',
+            : 'bg-gradient-to-r from-gold-400 to-clay-500 text-abyss hover:brightness-105',
         )}
       >
         {visited ? (

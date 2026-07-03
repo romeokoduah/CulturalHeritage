@@ -40,11 +40,11 @@ export function Landing() {
             <Sparkles size={13} className="mr-1.5 text-gold-400" />
             <AnimatedShinyText className="font-medium">AI for Cultural Heritage & Storytelling</AnimatedShinyText>
           </GradientBadge>
-          <h1 className="mx-auto mt-5 max-w-2xl text-balance font-display text-3xl font-extrabold leading-[1.05] sm:text-5xl">
+          <h1 className="mx-auto mt-5 max-w-2xl text-balance font-display text-3xl font-extrabold leading-[1.05] text-slate-50 [text-shadow:0_2px_20px_rgba(0,0,0,0.5)] sm:text-5xl">
             Explore humanity's
             <br className="hidden sm:block" /> <span className="gradient-text">living heritage</span>
           </h1>
-          <p className="mx-auto mt-3 max-w-md text-balance text-sm text-white/60 sm:text-base">
+          <p className="mx-auto mt-3 max-w-md text-balance text-sm text-slate-200/90 [text-shadow:0_1px_12px_rgba(0,0,0,0.6)] sm:text-base">
             Spin the globe, land on a country, and let an AI storyteller bring its sites, languages and legends to life.
           </p>
         </div>
@@ -90,7 +90,7 @@ export function Landing() {
               </div>
               <Link
                 to={`/country/${selected.id}`}
-                className="mt-4 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-gold-400 to-clay-500 py-3 font-semibold text-ink-950 transition hover:brightness-105"
+                className="mt-4 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-gold-400 to-clay-500 py-3 font-semibold text-abyss transition hover:brightness-105"
               >
                 Explore {selected.name} <ArrowRight size={16} />
               </Link>

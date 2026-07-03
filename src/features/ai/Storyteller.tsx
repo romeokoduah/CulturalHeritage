@@ -140,7 +140,7 @@ export function Storyteller({
               className={cn(
                 'max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed',
                 m.role === 'user'
-                  ? 'bg-gold-400 text-ink-950 font-medium rounded-br-sm'
+                  ? 'bg-gold-400 text-abyss font-medium rounded-br-sm'
                   : 'bg-white/5 text-white/90 rounded-bl-sm',
               )}
             >
@@ -194,7 +194,7 @@ export function Storyteller({
         ) : (
           <button
             type="submit"
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gold-400 text-ink-950 transition hover:brightness-110"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gold-400 text-abyss transition hover:brightness-110"
             aria-label="Send"
           >
             <Send size={16} />

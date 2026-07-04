@@ -32,6 +32,20 @@ function countriesFromSites(siteIds: string[]): string[] {
   return [...set]
 }
 
+const ACTIVITY_KEY = 'heritagequest.activity.v1'
+
+/** Log today's date when a site is newly visited, powering streaks. */
+function logActivity() {
+  try {
+    const today = new Date().toISOString().slice(0, 10)
+    const raw = localStorage.getItem(ACTIVITY_KEY)
+    const days: string[] = raw ? JSON.parse(raw) : []
+    if (!days.includes(today)) localStorage.setItem(ACTIVITY_KEY, JSON.stringify([...days, today]))
+  } catch {
+    /* ignore */
+  }
+}
+
 /** React hook exposing the visitor passport, synced across the app via events. */
 export function usePassport() {
   const [state, setState] = useState<PassportState>(read)
@@ -49,6 +63,7 @@ export function usePassport() {
     const visitedSites = has
       ? cur.visitedSites.filter((s) => s !== siteId)
       : [...cur.visitedSites, siteId]
+    if (!has) logActivity()
     write({ visitedSites, visitedCountries: countriesFromSites(visitedSites) })
   }, [])
 

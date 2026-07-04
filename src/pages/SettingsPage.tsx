@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { Bot, Check, KeyRound, ShieldCheck, Trash2 } from 'lucide-react'
+import { Bot, Check, KeyRound, ShieldCheck, Trash2, Volume2 } from 'lucide-react'
 import { clearClaudeKey, getClaudeKey, setClaudeKey, activeProvider } from '../lib/ai'
+
+const DEEPGRAM_ON = !!import.meta.env.VITE_DEEPGRAM_API_KEY
 
 export function SettingsPage() {
   const [key, setKey] = useState('')
@@ -69,6 +71,31 @@ export function SettingsPage() {
           <ShieldCheck size={14} className="mt-0.5 shrink-0" />
           For a hackathon demo this calls Anthropic directly from the browser. In production, route requests through a
           small backend proxy so the key is never exposed.
+        </p>
+      </div>
+
+      <div className="mt-6 rounded-3xl glass p-5">
+        <p className="flex items-center gap-2 text-sm font-semibold">
+          <Volume2 size={16} className="text-gold-400" /> Voice
+        </p>
+        <div className="mt-3 flex items-center justify-between rounded-2xl bg-white/[0.03] px-4 py-3 ring-1 ring-white/10">
+          <span className="text-sm text-white/60">
+            {DEEPGRAM_ON ? 'Deepgram natural voice' : 'Browser voice'}
+          </span>
+          <span
+            className={
+              DEEPGRAM_ON
+                ? 'flex items-center gap-1.5 text-xs font-semibold text-jade-400'
+                : 'text-xs font-semibold text-white/40'
+            }
+          >
+            {DEEPGRAM_ON ? <><Check size={13} /> Active</> : 'Fallback'}
+          </span>
+        </div>
+        <p className="mt-3 text-xs text-white/40">
+          Greetings and stories are read aloud with Deepgram when a{' '}
+          <code className="rounded bg-white/10 px-1">VITE_DEEPGRAM_API_KEY</code> is set, otherwise your device's
+          built-in voice is used. Nothing is required — it just works.
         </p>
       </div>
 

@@ -5,6 +5,8 @@ import { SITES, SITES_BY_ID } from '../data/sites'
 import { MascotGlobe, PixelBadge } from '../components/PixelArt'
 import { usePassport } from '../lib/passport'
 import { HeritageVisual } from '../components/HeritageVisual'
+import { ShareButton } from '../components/ShareSheet'
+import type { ShareCardData } from '../lib/shareCard'
 
 export function PassportPage() {
   const { state } = usePassport()
@@ -13,10 +15,30 @@ export function PassportPage() {
   const pct = Math.round((visitedCount / total) * 100)
   const countriesEarned = state.visitedCountries.length
 
+  const shareData: ShareCardData = {
+    kind: 'passport',
+    eyebrow: 'Explorer Passport',
+    title: 'My HeritageQuest journey',
+    subtitle: `${pct}% of the world's heritage explored`,
+    accent: '#ffd166',
+    accent2: '#f97362',
+    emoji: '🌍',
+    stats: [
+      { label: 'Sites visited', value: String(visitedCount) },
+      { label: 'Country badges', value: String(countriesEarned) },
+      { label: 'Explored', value: `${pct}%` },
+    ],
+  }
+  const shareContent = {
+    title: 'My HeritageQuest passport',
+    text: `I've explored ${visitedCount} heritage sites across ${countriesEarned} countries!`,
+    url: typeof window !== 'undefined' ? window.location.origin : '',
+  }
+
   return (
     <div className="mx-auto w-full max-w-4xl px-4 pb-16">
       {/* Header */}
-      <div className="mt-6 flex items-center gap-4 rounded-3xl glass p-5">
+      <div className="relative mt-6 flex items-center gap-4 rounded-3xl glass p-5">
         <MascotGlobe size={80} />
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-1.5 text-xs uppercase tracking-widest text-gold-400/80">
@@ -32,6 +54,9 @@ export function PassportPage() {
           <p className="mt-2 text-xs text-white/50">
             {visitedCount} of {total} sites · {countriesEarned} of {COUNTRIES.length} country badges
           </p>
+        </div>
+        <div className="absolute right-4 top-4">
+          <ShareButton data={shareData} share={shareContent} />
         </div>
       </div>
 

@@ -84,6 +84,9 @@ export function Storyteller({
       { label: '🗣️ Teach a greeting', prompt: `Teach me a local greeting from ${seed}.` },
       { label: '💡 Surprise me', prompt: `Tell me a surprising fact about ${seed}.` },
       { label: '🧠 Quiz me', prompt: `Quiz me about ${seed}.` },
+      { label: '📜 Its timeline', prompt: `Walk me through the timeline of ${seed}.` },
+      { label: '🧭 Nearby wonders', prompt: `What other heritage is near ${seed}?` },
+      { label: '🧳 Plan a visit', prompt: `Help me plan a visit to ${seed}.` },
     ]
 
   useEffect(() => {

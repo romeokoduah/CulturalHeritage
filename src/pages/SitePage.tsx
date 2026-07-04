@@ -9,6 +9,8 @@ import { DELEGATES } from '../data/delegates'
 import { HeritageVisual } from '../components/HeritageVisual'
 import { SketchfabViewer } from '../features/site/SketchfabViewer'
 import { Storyteller } from '../features/ai/Storyteller'
+import { ShareButton } from '../components/ShareSheet'
+import type { ShareCardData } from '../lib/shareCard'
 import { usePassport } from '../lib/passport'
 import { cn } from '../lib/cn'
 import { NotFound } from './NotFound'
@@ -63,6 +65,23 @@ export function SitePage() {
   const delegateName = delegate?.name ?? 'Heritage Guide'
   const accentColor = site.themeColor
 
+  const shareData: ShareCardData = {
+    kind: 'site',
+    eyebrow: site.unesco ? 'UNESCO World Heritage' : site.category,
+    title: site.name,
+    subtitle: country ? `${site.city} · ${country.name}` : site.city,
+    greeting: `"${site.greeting.phrase}" — ${site.greeting.meaning}`,
+    accent: accentColor,
+    accent2: country?.colors[1],
+    imageUrl: site.imageUrl,
+    emoji: country?.emojiFlag,
+  }
+  const shareContent = {
+    title: `${site.name} · HeritageQuest`,
+    text: site.tagline,
+    url: typeof window !== 'undefined' ? window.location.href : '',
+  }
+
   return (
     <div className="mx-auto w-full max-w-4xl px-4 pb-16">
       {/* Full-width hero image */}
@@ -94,6 +113,9 @@ export function SitePage() {
               </>
             )}
           </div>
+          <div className="absolute right-4 top-4">
+            <ShareButton data={shareData} share={shareContent} />
+          </div>
           {/* Title overlaid */}
           <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6">
             <h1 className="font-display text-3xl font-extrabold leading-tight sm:text-4xl drop-shadow-lg">{site.name}</h1>
@@ -116,6 +138,9 @@ export function SitePage() {
                 {country.emojiFlag} {country.name}
               </Link>
             )}
+            <div className="ml-auto">
+              <ShareButton data={shareData} share={shareContent} />
+            </div>
           </div>
           <h1 className="mt-3 font-display text-3xl font-extrabold leading-tight sm:text-4xl">{site.name}</h1>
           {site.localName && <p className="mt-1 text-lg text-white/50">{site.localName}</p>}

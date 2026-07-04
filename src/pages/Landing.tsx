@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { COUNTRIES } from '../data/countries'
 import { SITES } from '../data/sites'
+import { TRENDING_IDS } from '../data/featured'
 import type { Country } from '../lib/types'
 import { HeritageVisual } from '../components/HeritageVisual'
 import { ShimmerButton } from '../components/magicui/ShimmerButton'
@@ -23,7 +24,11 @@ import { BentoGrid, BentoCard } from '../components/magicui/BentoGrid'
 import { Marquee } from '../components/magicui/Marquee'
 import { NumberTicker } from '../components/magicui/NumberTicker'
 import { RetroGrid } from '../components/magicui/RetroGrid'
-// cn available if needed
+import { SparklesText } from '../components/magicui/SparklesText'
+import { GradientBadge, AnimatedShinyText } from '../components/magicui/AnimatedGradientText'
+import { BorderBeam } from '../components/magicui/BorderBeam'
+import { Meteors } from '../components/magicui/Meteors'
+import { Particles } from '../components/magicui/Particles'
 
 const GlobeExplorer = lazy(() =>
   import('../features/globe/GlobeExplorer').then((m) => ({ default: m.GlobeExplorer })),
@@ -52,23 +57,22 @@ function AnimatedSection({
   )
 }
 
-/* ── Stats data ── */
+/* ── Stats data (derived from the real dataset, not hand-typed) ── */
+const UNESCO_COUNT = SITES.filter((s) => s.unesco).length
+const OLDEST_YEAR = Math.min(
+  ...SITES.map((s) => s.foundedYear).filter((y): y is number => typeof y === 'number'),
+)
+// Round the span of history down to a tidy 500-year figure.
+const YEARS_OF_HISTORY = Math.floor((new Date().getFullYear() - OLDEST_YEAR) / 500) * 500
+
 const STATS = [
-  { value: 150, suffix: '+', label: 'Heritage Sites', icon: Building2, color: '#ffd166' },
-  { value: 45, suffix: '', label: 'Countries', icon: Globe2, color: '#a78bfa' },
-  { value: 5000, suffix: '+', label: 'Years of History', icon: Clock, color: '#f97362' },
-  { value: 30, suffix: '+', label: 'UNESCO Sites', icon: BookOpen, color: '#4ade80' },
+  { value: SITES.length, suffix: '', label: 'Heritage Sites', icon: Building2, color: '#ffd166' },
+  { value: COUNTRIES.length, suffix: '', label: 'Countries', icon: Globe2, color: '#a78bfa' },
+  { value: YEARS_OF_HISTORY, suffix: '+', label: 'Years of History', icon: Clock, color: '#f97362' },
+  { value: UNESCO_COUNT, suffix: '', label: 'UNESCO Sites', icon: BookOpen, color: '#4ade80' },
 ]
 
-/* ── Trending sites ── */
-const TRENDING_IDS = [
-  'pyramids-of-giza',
-  'angkor-wat',
-  'taj-mahal',
-  'colosseum',
-  'alhambra-granada',
-  'mount-fuji',
-]
+/* ── Trending sites (shared source of truth in data/featured) ── */
 const TRENDING_SITES = TRENDING_IDS.map((id) => SITES.find((s) => s.id === id)!).filter(Boolean)
 
 /* ── Features data ── */
@@ -102,14 +106,18 @@ export function Landing() {
 
         {/* Hero text overlay — positioned at top, does NOT cover the globe pins */}
         <div className="pointer-events-none absolute inset-x-0 top-0 z-20 px-5 pt-6 pb-4 text-center" style={{ maxHeight: '45%' }}>
-          <div className="pointer-events-auto mx-auto inline-flex items-center gap-1.5 rounded-full border border-gold-400/20 bg-gold-400/10 px-4 py-1.5">
-            <Sparkles size={13} className="text-gold-400" />
-            <span className="text-xs font-semibold text-gold-400">AI for Cultural Heritage & Storytelling</span>
-          </div>
+          <GradientBadge className="pointer-events-auto">
+            <Sparkles size={13} className="mr-1.5 text-gold-400" />
+            <AnimatedShinyText className="text-xs font-semibold">
+              AI for Cultural Heritage & Storytelling
+            </AnimatedShinyText>
+          </GradientBadge>
 
           <h1 className="pointer-events-none mx-auto mt-4 max-w-3xl text-balance font-display text-3xl font-extrabold leading-[1.08] text-slate-50 [text-shadow:0_4px_40px_rgba(0,0,0,0.6)] sm:text-4xl md:text-5xl">
             Discover humanity's{' '}
-            <span className="gradient-text">living heritage</span>
+            <SparklesText className="align-baseline">
+              <span className="gradient-text">living heritage</span>
+            </SparklesText>
           </h1>
 
           <p className="pointer-events-none mx-auto mt-3 max-w-md text-balance text-sm text-slate-200/70 [text-shadow:0_2px_16px_rgba(0,0,0,0.6)] sm:text-base">
@@ -183,22 +191,23 @@ export function Landing() {
       </section>
 
       {/* ═══════════ STATS ═══════════ */}
-      <AnimatedSection className="relative bg-gradient-to-b from-ink-950 via-ink-900 to-ink-950 py-20">
-        <div className="mx-auto grid w-full max-w-5xl grid-cols-2 gap-4 px-4 sm:grid-cols-4 sm:gap-6">
+      <AnimatedSection className="relative overflow-hidden bg-gradient-to-b from-ink-950 via-ink-900 to-ink-950 py-20">
+        <Particles className="opacity-70" count={44} color="#ffd166" />
+        <div className="relative z-10 mx-auto grid w-full max-w-5xl grid-cols-2 gap-4 px-4 sm:grid-cols-4 sm:gap-6">
           {STATS.map((stat) => {
             const Icon = stat.icon
             return (
               <div
                 key={stat.label}
-                className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 text-center backdrop-blur-md"
+                className="group rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 text-center backdrop-blur-md transition duration-300 hover:-translate-y-1 hover:border-white/[0.14] hover:bg-white/[0.04]"
               >
                 <div
-                  className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl"
-                  style={{ background: `${stat.color}15`, color: stat.color }}
+                  className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl transition group-hover:scale-110"
+                  style={{ background: `${stat.color}18`, color: stat.color }}
                 >
                   <Icon size={20} />
                 </div>
-                <div className="font-display text-2xl font-extrabold sm:text-3xl">
+                <div className="font-display text-2xl font-extrabold sm:text-3xl" style={{ color: stat.color }}>
                   <NumberTicker value={stat.value} suffix={stat.suffix} duration={2500} />
                 </div>
                 <p className="mt-1 text-xs font-medium uppercase tracking-widest text-white/40">{stat.label}</p>
@@ -330,9 +339,11 @@ export function Landing() {
           <div className="grid gap-4 sm:grid-cols-2">
             {FEATURES.map((f) => {
               const Icon = f.icon
+              const highlight = f.title === 'AI Storyteller'
               const card = (
-                <div className="group rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 backdrop-blur-md transition hover:border-white/[0.12] hover:bg-white/[0.04]">
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl" style={{ background: `${f.iconColor}15`, color: f.iconColor }}>
+                <div className="group relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 backdrop-blur-md transition hover:border-white/[0.12] hover:bg-white/[0.04]">
+                  {highlight && <BorderBeam size={140} duration={9} colorFrom="#4ade80" colorTo="#a78bfa" />}
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl transition group-hover:scale-110" style={{ background: `${f.iconColor}15`, color: f.iconColor }}>
                     <Icon size={24} />
                   </div>
                   <h3 className="font-display text-lg font-bold">{f.title}</h3>
@@ -357,6 +368,7 @@ export function Landing() {
       {/* ═══════════ MISSION ═══════════ */}
       <AnimatedSection className="relative overflow-hidden bg-gradient-to-b from-ink-900 to-ink-950 py-20">
         <RetroGrid className="opacity-15" />
+        <Meteors count={14} />
         <div className="relative z-10 mx-auto max-w-5xl px-4 text-center">
           <h2 className="font-display text-3xl font-extrabold sm:text-4xl">
             Heritage, <span className="gradient-text">reimagined</span> by AI

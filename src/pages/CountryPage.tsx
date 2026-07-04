@@ -10,11 +10,12 @@ import HeritageTimeline from '../features/timeline/HeritageTimeline'
 import { PixelBadge } from '../components/PixelArt'
 import { Storyteller } from '../features/ai/Storyteller'
 import { BentoCard, BentoGrid } from '../components/magicui/BentoGrid'
+import { ShareButton } from '../components/ShareSheet'
+import type { ShareCardData } from '../lib/shareCard'
 import { usePassport } from '../lib/passport'
+import { TRENDING_ID_SET } from '../data/featured'
 import { cn } from '../lib/cn'
 import { NotFound } from './NotFound'
-
-const TRENDING_IDS = ['pyramids-of-giza', 'angkor-wat', 'taj-mahal', 'colosseum', 'alhambra-granada', 'mount-fuji']
 
 const fadeUp = {
   hidden: { opacity: 0, y: 32 },
@@ -56,6 +57,22 @@ export function CountryPage() {
   // Find first site with an image for hero
   const heroImage = sites.find((s) => s.imageUrl)?.imageUrl
 
+  const shareData: ShareCardData = {
+    kind: 'country',
+    eyebrow: country.region,
+    title: `${country.name}`,
+    subtitle: `${sites.length} heritage sites · ${country.languages[0]}`,
+    accent: country.colors[0],
+    accent2: country.colors[1],
+    imageUrl: heroImage,
+    emoji: country.emojiFlag,
+  }
+  const shareContent = {
+    title: `${country.name} · HeritageQuest`,
+    text: country.summary,
+    url: typeof window !== 'undefined' ? window.location.href : '',
+  }
+
   return (
     <div className="mx-auto w-full max-w-5xl px-4 pb-16">
       {/* Hero banner */}
@@ -84,6 +101,9 @@ export function CountryPage() {
         >
           <ArrowLeft size={14} /> Globe
         </Link>
+        <div className="absolute right-3 top-3">
+          <ShareButton data={shareData} share={shareContent} />
+        </div>
         <div className="absolute bottom-0 left-0 right-0 p-5">
           <div className="flex items-end justify-between gap-3">
             <div>
@@ -205,7 +225,7 @@ export function CountryPage() {
                       UNESCO
                     </span>
                   )}
-                  {TRENDING_IDS.includes(s.id) && (
+                  {TRENDING_ID_SET.has(s.id) && (
                     <span className="rounded-full bg-orange-500/20 px-2 py-0.5 text-[10px] font-semibold text-orange-400 flex items-center gap-0.5">
                       <TrendingUp size={10} /> Must Visit
                     </span>

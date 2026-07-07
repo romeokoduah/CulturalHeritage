@@ -77,6 +77,9 @@ const OPENERS = [
   "Let me set the scene.",
   'Come closer — this one is special.',
   'Ah, a wonderful place to linger.',
+  'Every stone has a voice here.',
+  'This is one of humanity\'s greatest chapters.',
+  'Stand here and feel the weight of centuries.',
 ]
 
 const FOLLOWUPS = [
@@ -84,6 +87,8 @@ const FOLLOWUPS = [
   '\n\n_Ask me for more, or say "quiz me" to test what stuck._',
   '\n\n_Shall I go deeper, teach you a greeting, or move to a nearby wonder?_',
   '\n\n_Say "tell me more" and I\'ll keep going._',
+  '\n\n_Try "plan a visit" for tips, or "quiz me" to test your knowledge._',
+  '\n\n_Curious about a local greeting? Just ask._',
 ]
 
 /* ─────────────────────────── site responses ─────────────────────────── */
@@ -94,11 +99,11 @@ function siteReply(intent: Intent, site: HeritageSite, history: ChatMessage[]): 
 
   switch (intent) {
     case 'greeting':
-      return `In ${site.city}, a warm welcome sounds like **"${g.phrase}"** _(${g.pronounce})_ — that's **"${g.meaning}"** in ${g.language}. 🗣️\n\nTry it aloud as you imagine standing before ${site.name}. Tap the **Listen** button on any message and I'll say it for you. Want another phrase, or the story behind this place?`
+      return `In ${site.city}, a warm welcome sounds like **"${g.phrase}"** _(${g.pronounce})_ — that's **"${g.meaning}"** in ${g.language}. 🗣️\n\nThis greeting is part of everyday life in ${country?.name ?? 'this region'}. When you say **"${g.phrase}"**, you're not just speaking a word — you're stepping into a tradition of hospitality that has welcomed travellers to ${site.name} for generations.\n\nTry it aloud. Tap the **Listen** button on any message and I'll say it for you.\n\n_Want the story behind this place, or a surprising fact?_`
 
     case 'fact': {
       const f = freshFact(site, history)
-      return `${rand(['Did you know?', 'Here\'s a good one.', 'A little-known gem:'])} ${f}${rand(FOLLOWUPS)}`
+      return `${rand(['Did you know?', 'Here\'s a good one.', 'A little-known gem:', 'This one catches people off guard:'])} ${f}\n\n${site.name} (${site.yearsLabel}) is full of stories like this — ${site.category.toLowerCase()} heritage that keeps revealing new layers the deeper you look.${rand(FOLLOWUPS)}`
     }
 
     case 'quiz': {
@@ -107,36 +112,38 @@ function siteReply(intent: Intent, site: HeritageSite, history: ChatMessage[]): 
     }
 
     case 'quizAnswer':
-      return `${rand(['Well played —', 'Exactly right —', 'Good instinct —', 'You\'ve got it —'])} that one is **true**. ✨ ${freshFact(site, history)}\n\nWant another round, or shall I tell the fuller story of ${site.name}?`
+      return `${rand(['Well played —', 'Exactly right —', 'Good instinct —', 'You\'ve got it —'])} that one is **true**. ✨\n\nHere's another layer to the story: ${freshFact(site, history)}\n\n${site.name} (${site.yearsLabel}, ${site.city}) is a place where every detail carries meaning.${site.unesco ? ' Its UNESCO status protects it for future generations.' : ''}\n\nWant another round, or shall I tell the fuller story?`
 
     case 'plan': {
-      const unesco = site.unesco ? ' As a UNESCO World Heritage Site, it rewards a slow, attentive visit. ' : ' '
-      return `${site.name} sits in **${site.city}** — ${site.category.toLowerCase()} heritage, ${site.yearsLabel}.${unesco}A few gentle tips:\n\n• Arrive early — the light is softer and the crowds thinner.\n• Take a local guide if you can; the stories live in the details.\n• Learn one phrase first: **"${g.phrase}"** (${g.meaning}).\n\nWant me to point out what to look for when you arrive?`
+      const unesco = site.unesco ? `\n\n🏛️ **UNESCO World Heritage Site** — This designation recognises ${site.name} as a place of outstanding universal value. It rewards a slow, attentive visit; give yourself at least half a day.` : ''
+      const rel = relatedSites(site)
+      const nearbyTip = rel.length ? `\n• **Combine your visit** — nearby you'll also find ${rel.slice(0, 2).map(s => `**${s.name}**`).join(' and ')}.` : ''
+      return `**Planning your visit to ${site.name}**\n\n📍 **Location:** ${site.city}, ${country?.name ?? ''}\n📅 **Era:** ${site.yearsLabel}\n🏷️ **Category:** ${site.category} heritage${unesco}\n\n**Tips for a meaningful visit:**\n\n• **Arrive early** — the light is softer, the crowds thinner, and you'll have space to absorb the atmosphere.\n• **Hire a local guide** if you can — the stories that live in the details are what transform a visit into an experience.\n• **Learn a phrase first:** **"${g.phrase}"** _(${g.pronounce})_ means "${g.meaning}" in ${g.language}. Locals will light up when you try it.\n• **Take your time** — ${site.category === 'Intangible' ? 'watch the artisans work, ask questions, and feel the rhythm of a living tradition' : 'walk slowly, read every plaque, and sit quietly for a moment to feel the history'}.${nearbyTip}\n\n_Want me to tell the story of this place, or teach you another local phrase?_`
     }
 
     case 'timeline': {
       const events = timelineFor(site)
       if (events.length) {
         const lines = events
-          .slice(0, 3)
-          .map((e) => `• **${e.yearLabel}** — ${e.title}: ${e.description}`)
+          .slice(0, 5)
+          .map((e) => `• **${e.yearLabel}** — **${e.title}:** ${e.description}`)
           .join('\n')
-        return `A short walk through ${site.name}'s timeline:\n\n${lines}\n\n_Want the wider story of ${country?.name ?? 'the region'}, or a surprising fact?_`
+        return `**The timeline of ${site.name}:**\n\n📍 ${site.city}, ${country?.name ?? ''} · ${site.category} heritage\n\n${lines}\n\n${site.unesco ? '_This UNESCO World Heritage Site has endured through all of this — and still stands._ ' : ''}Open the **Timeline** page for the full interactive view.\n\n_Want the wider story of ${country?.name ?? 'the region'}, or a surprising fact?_`
       }
-      return `${site.name} is dated to **${site.yearsLabel}**${site.foundedYear ? ` (around ${Math.abs(site.foundedYear)} ${site.foundedYear < 0 ? 'BCE' : 'CE'})` : ''}. ${freshFact(site, history)}`
+      return `${site.name} is dated to **${site.yearsLabel}**${site.foundedYear ? ` (around ${Math.abs(site.foundedYear)} ${site.foundedYear < 0 ? 'BCE' : 'CE'})` : ''}. Located in **${site.city}**, this ${site.category.toLowerCase()} heritage has witnessed centuries of change.\n\n${freshFact(site, history)}${rand(FOLLOWUPS)}`
     }
 
     case 'related': {
       const rel = relatedSites(site)
       if (rel.length) {
-        const picks = rel.slice(0, 3).map((s) => `• **${s.name}** — ${s.tagline}`).join('\n')
-        return `If ${site.name} moved you, ${country?.name ?? 'this country'} holds more:\n\n${picks}\n\n_Tap any site on the country page to dive in — or ask me about one by name._`
+        const picks = rel.map((s) => `• **${s.name}** (${s.city}) — ${s.tagline}${s.unesco ? ' 🏛️' : ''}`).join('\n')
+        return `**More heritage in ${country?.name ?? 'this region'}:**\n\nIf ${site.name} moved you, there's much more to discover:\n\n${picks}\n\nEach of these sites carries its own centuries-deep story. _Tap any site on the country page to dive in, or ask me about one by name._`
       }
-      return `${site.name} is a standout in ${country?.name ?? 'its region'}. Ask me for its story, or a greeting in ${g.language}.`
+      return `${site.name} is a standout in ${country?.name ?? 'its region'} — **${site.category.toLowerCase()} heritage** dating to **${site.yearsLabel}**. Ask me for its full story, a greeting in ${g.language}, or say "quiz me".`
     }
 
     case 'meaning':
-      return `${site.localName ? `**${site.name}** — locally *${site.localName}* — ` : `**${site.name}** `}means far more than its stones. ${site.tagline} ${rand(OPENERS)} ${freshFact(site, history)}`
+      return `${site.localName ? `**${site.name}** — locally known as *${site.localName}* — ` : `**${site.name}** `}carries meaning far beyond its physical form.\n\n${site.tagline}\n\n${rand(OPENERS)} This ${site.category.toLowerCase()} heritage, dating to **${site.yearsLabel}**, is part of the cultural identity of ${country?.name ?? 'its region'}. ${site.unesco ? 'Its UNESCO World Heritage status reflects its importance to all of humanity. ' : ''}${freshFact(site, history)}${rand(FOLLOWUPS)}`
 
     case 'more': {
       // Progress the conversation: fact → timeline → related, based on what's been said.
@@ -158,8 +165,12 @@ function siteReply(intent: Intent, site: HeritageSite, history: ChatMessage[]): 
       return `I'm your guide to **${site.name}**. You can ask me to:\n\n• **Tell its story** — the history and meaning\n• **Teach a greeting** in ${g.language}\n• **Surprise me** with a fact\n• **Quiz me** to test what you've learned\n• **Plan a visit** or explore **nearby** sites\n\nWhat sounds good?`
 
     case 'story':
-    default:
-      return `${rand(OPENERS)}\n\n${site.story}${rand(FOLLOWUPS)}`
+    default: {
+      const unescoNote = site.unesco ? '\n\nThis site holds **UNESCO World Heritage** status — recognised as a place of outstanding universal value to all of humanity.' : ''
+      const factTeaser = site.funFacts.length ? `\n\nHere's something that might surprise you: ${site.funFacts[0]}` : ''
+      const categoryNote = `This is **${site.category.toLowerCase()} heritage**, dating to **${site.yearsLabel}**, located in **${site.city}**, ${country?.name ?? ''}.`
+      return `${rand(OPENERS)}\n\n${categoryNote}\n\n${site.story}${unescoNote}${factTeaser}${rand(FOLLOWUPS)}`
+    }
   }
 }
 
@@ -168,37 +179,56 @@ function siteReply(intent: Intent, site: HeritageSite, history: ChatMessage[]): 
 function countryReply(intent: Intent, ctx: StorytellerContext): string {
   const country = ctx.country!
   const sites = SITES_BY_COUNTRY[country.id] ?? []
+  const unescoCount = sites.filter(s => s.unesco).length
 
   switch (intent) {
     case 'greeting':
-      return `${country.name} speaks in many voices — ${country.languages.slice(0, 3).join(', ')}${country.languages.length > 3 ? ' and more' : ''}. 🗣️ Pick one of its heritage sites and I'll teach you a real greeting used there. Which draws you in?`
+      return `${country.name} speaks in many voices — ${country.languages.join(', ')}. 🗣️\n\nEach language carries centuries of tradition, trade, and storytelling. Pick one of its **${sites.length} featured heritage sites** and I'll teach you a real greeting used there — the kind that opens doors and earns smiles.\n\nWhich site draws you in?`
 
     case 'plan':
-      return `A journey through ${country.name} (${country.region}) could thread its **${sites.length} featured sites**. ${country.heritageIntro}\n\nStart with ${sites[0] ? `**${sites[0].name}**` : 'any pin'} and let the thread pull you onward. Want me to suggest a route?`
+      return `**Planning a heritage journey through ${country.name}**\n\n🌍 **Region:** ${country.region}\n🗣️ **Languages:** ${country.languages.slice(0, 4).join(', ')}${country.languages.length > 4 ? ' and more' : ''}\n🏛️ **Featured sites:** ${sites.length}${unescoCount ? ` (${unescoCount} UNESCO World Heritage)` : ''}\n\n${country.heritageIntro}\n\n**Suggested route:**\n\n${sites.slice(0, 4).map((s, i) => `${i + 1}. **${s.name}** in ${s.city} — ${s.tagline}`).join('\n')}\n\nStart with ${sites[0] ? `**${sites[0].name}**` : 'any pin'} and let each site pull you to the next. Tap any site on the map for the full story.\n\n_Say "quiz me" to test your knowledge, or ask about any site by name._`
 
-    case 'related':
-    case 'more': {
-      const picks = sites.slice(0, 4).map((s) => `• **${s.name}** — ${s.tagline}`).join('\n')
-      return `Here's what ${country.name} keeps for the curious:\n\n${picks}\n\n_Ask me about any of them by name._`
-    }
-
-    case 'timeline': {
-      const events = timelineFor(undefined, country.id).slice(0, 3)
-      if (events.length) {
-        const lines = events.map((e) => `• **${e.yearLabel}** — ${e.title}`).join('\n')
-        return `${country.name} across the ages:\n\n${lines}\n\n_Open the Timeline page to walk it in full._`
+    case 'fact': {
+      const allFacts = sites.flatMap(s => s.funFacts.map(f => ({ site: s.name, fact: f })))
+      if (allFacts.length) {
+        const pick = rand(allFacts)
+        return `**Did you know?** ${pick.fact}\n\n— from **${pick.site}**, one of ${country.name}'s ${sites.length} featured heritage sites.${rand(FOLLOWUPS)}`
       }
       return country.heritageIntro
     }
 
+    case 'quiz': {
+      const allFacts = sites.flatMap(s => s.funFacts.map(f => ({ site: s.name, fact: f })))
+      if (allFacts.length) {
+        const pick = rand(allFacts)
+        return `🧠 **Quick quiz — ${country.name} heritage.**\n\n"${pick.fact}"\n\n**True or false?** Take your best guess!`
+      }
+      return `Pick a heritage site in ${country.name} and I'll quiz you on it.`
+    }
+
+    case 'related':
+    case 'more': {
+      const picks = sites.map((s) => `• **${s.name}** (${s.city}) — ${s.tagline}${s.unesco ? ' 🏛️' : ''}`).join('\n')
+      return `**${country.name}'s heritage at a glance:**\n\n${picks}\n\n${unescoCount ? `🏛️ = UNESCO World Heritage Site (${unescoCount} total)\n\n` : ''}_Tap any site on the map, or ask me about one by name._`
+    }
+
+    case 'timeline': {
+      const events = timelineFor(undefined, country.id).slice(0, 5)
+      if (events.length) {
+        const lines = events.map((e) => `• **${e.yearLabel}** — ${e.title}: ${e.description}`).join('\n')
+        return `**${country.name} across the ages:**\n\n${lines}\n\nThis is just a glimpse — open the **Timeline** page to walk the full journey. _Or ask me to go deeper on any era._`
+      }
+      return `${country.heritageIntro}\n\n${country.name} holds **${sites.length} featured heritage sites** spanning centuries of history. Ask about any site for its detailed timeline.`
+    }
+
     case 'help':
-      return `I can guide you through **${country.name}**. Ask for its **heritage story**, a **greeting**, the **sites** worth seeing, or say **"quiz me"**. Where shall we begin?`
+      return `I can guide you through **${country.name}** (${country.region}). Here's what I can do:\n\n• **"Tell me its story"** — the heritage and traditions of ${country.name}\n• **"Teach a greeting"** — a phrase in ${country.languages[0] ?? 'the local language'}\n• **"Show me the sites"** — all ${sites.length} featured heritage places\n• **"Surprise me"** — a fact you probably didn't know\n• **"Quiz me"** — test what you've learned\n• **"Plan a visit"** — a suggested heritage route\n• **"Timeline"** — walk through history\n\nWhere shall we begin?`
 
     case 'thanks':
-      return `Thank you for exploring ${country.name} with me. 🌏 Its heritage is a living thing — the more we share it, the longer it endures.`
+      return `Thank you for exploring ${country.name} with me. 🌏 Its **${sites.length} heritage sites** carry the voices of countless generations. The more we share these stories, the longer they endure. Come back anytime — there's always more to discover.`
 
     default:
-      return `${country.heritageIntro}\n\n_Ask me about any of ${country.name}'s heritage sites and I'll tell its story — or say "quiz me"._`
+      return `**Welcome to ${country.name}** ${country.emojiFlag}\n\n🌍 **Region:** ${country.region}\n🗣️ **Languages:** ${country.languages.slice(0, 4).join(', ')}${country.languages.length > 4 ? ' and more' : ''}\n🏛️ **Heritage sites:** ${sites.length}${unescoCount ? ` (${unescoCount} UNESCO)` : ''}\n\n${country.heritageIntro}\n\n**Featured sites:**\n\n${sites.slice(0, 4).map(s => `• **${s.name}** — ${s.tagline}`).join('\n')}\n\n_Tap a site on the map, ask me about one by name, or say "quiz me" to test your knowledge._`
   }
 }
 

@@ -177,16 +177,18 @@ export function GlobeExplorer({ onSelectCountry }: { onSelectCountry: (c: Countr
         htmlElement={(d: object) => {
           const m = d as CountryMarker
           const el = document.createElement('div')
-          el.style.cssText = 'cursor:pointer;pointer-events:auto;transition:transform 0.15s;'
+          // Generous hit area prevents hover flicker — the container never scales,
+          // only the inner image does, so the pointer target stays stable.
+          el.style.cssText = 'cursor:pointer;pointer-events:auto;padding:8px;margin:-8px;'
           const img = document.createElement('img')
           img.src = flagPinDataUrl(m.flag, m.color)
           img.width = 36
           img.height = 45
-          img.style.cssText = 'display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));'
+          img.style.cssText = 'display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));transition:transform 0.18s ease;pointer-events:none;'
           img.draggable = false
           el.appendChild(img)
-          el.onmouseenter = () => { el.style.transform = 'scale(1.3)' }
-          el.onmouseleave = () => { el.style.transform = 'scale(1)' }
+          el.onmouseenter = () => { img.style.transform = 'scale(1.3)' }
+          el.onmouseleave = () => { img.style.transform = 'scale(1)' }
           el.onclick = (e) => {
             e.stopPropagation()
             const country = COUNTRIES.find((c) => c.id === m.id)

@@ -1,8 +1,7 @@
 import type { AIProvider, ChatMessage, StorytellerContext } from './types'
 
-const OLLAMA_KEY = import.meta.env.VITE_OLLAMA_API_KEY as string | undefined
+const OLLAMA_ENABLED = import.meta.env.VITE_OLLAMA_ENABLED === 'true'
 const MODEL = 'gemma4:31b'
-const BASE_URL = 'https://ollama.com/api/chat'
 
 function systemPrompt(context: StorytellerContext): string {
   const { site, country } = context
@@ -32,18 +31,13 @@ function systemPrompt(context: StorytellerContext): string {
 export const ollamaProvider: AIProvider = {
   id: 'ollama',
   label: 'Ollama AI Storyteller',
-  isReady: () => !!OLLAMA_KEY,
+  isReady: () => OLLAMA_ENABLED,
   async *stream(history: ChatMessage[], context: StorytellerContext, signal?: AbortSignal) {
-    if (!OLLAMA_KEY) {
-      yield 'Ollama is not configured. Set VITE_OLLAMA_API_KEY to enable AI storytelling.'
-      return
-    }
-    const res = await fetch(BASE_URL, {
+    const res = await fetch('/api/chat', {
       method: 'POST',
       signal,
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${OLLAMA_KEY}`,
       },
       body: JSON.stringify({
         model: MODEL,

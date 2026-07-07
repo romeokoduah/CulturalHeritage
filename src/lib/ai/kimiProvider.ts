@@ -1,8 +1,8 @@
 import type { AIProvider, ChatMessage, StorytellerContext } from './types'
 
 const KIMI_KEY = import.meta.env.VITE_KIMI_API_KEY as string | undefined
-const MODEL = 'moonshot-v1-32k'
-const BASE_URL = 'https://api.moonshot.cn/v1/chat/completions'
+const MODEL = 'kimi-k2.6'
+const BASE_URL = 'https://api.moonshot.ai/v1/chat/completions'
 
 function systemPrompt(context: StorytellerContext): string {
   const { site, country } = context

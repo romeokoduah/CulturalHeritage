@@ -1,8 +1,8 @@
 import type { AIProvider, ChatMessage, StorytellerContext } from './types'
 
-const KIMI_KEY = import.meta.env.VITE_KIMI_API_KEY as string | undefined
-const MODEL = 'kimi-k2.6'
-const BASE_URL = 'https://api.moonshot.ai/v1/chat/completions'
+const OLLAMA_KEY = import.meta.env.VITE_OLLAMA_API_KEY as string | undefined
+const MODEL = 'gemma4:31b'
+const BASE_URL = 'https://ollama.com/api/chat'
 
 function systemPrompt(context: StorytellerContext): string {
   const { site, country } = context
@@ -25,20 +25,17 @@ function systemPrompt(context: StorytellerContext): string {
 }
 
 /**
- * KimiProvider — uses the Moonshot AI (Kimi) API for real-time, knowledgeable
- * heritage storytelling. Kimi excels at providing accurate, up-to-date
- * information about places and cultural sites.
- *
- * Activated when VITE_KIMI_API_KEY is set in the environment.
- * Uses OpenAI-compatible chat completions API with streaming.
+ * OllamaProvider — uses Ollama Cloud API for heritage storytelling.
+ * Activated when VITE_OLLAMA_API_KEY is set in the environment.
+ * Uses the Ollama native /api/chat endpoint with streaming.
  */
-export const kimiProvider: AIProvider = {
-  id: 'kimi',
-  label: 'Kimi AI Storyteller',
-  isReady: () => !!KIMI_KEY,
+export const ollamaProvider: AIProvider = {
+  id: 'ollama',
+  label: 'Ollama AI Storyteller',
+  isReady: () => !!OLLAMA_KEY,
   async *stream(history: ChatMessage[], context: StorytellerContext, signal?: AbortSignal) {
-    if (!KIMI_KEY) {
-      yield 'Kimi AI is not configured. Set VITE_KIMI_API_KEY to enable real-time heritage storytelling.'
+    if (!OLLAMA_KEY) {
+      yield 'Ollama is not configured. Set VITE_OLLAMA_API_KEY to enable AI storytelling.'
       return
     }
     const res = await fetch(BASE_URL, {
@@ -46,11 +43,10 @@ export const kimiProvider: AIProvider = {
       signal,
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${KIMI_KEY}`,
+        Authorization: `Bearer ${OLLAMA_KEY}`,
       },
       body: JSON.stringify({
         model: MODEL,
-        max_tokens: 700,
         stream: true,
         messages: [
           { role: 'system', content: systemPrompt(context) },
@@ -69,19 +65,19 @@ export const kimiProvider: AIProvider = {
       const { done, value } = await reader.read()
       if (done) break
       buffer += decoder.decode(value, { stream: true })
-      const events = buffer.split('\n\n')
-      buffer = events.pop() ?? ''
-      for (const evt of events) {
-        const dataLine = evt.split('\n').find((l) => l.startsWith('data:'))
-        if (!dataLine) continue
-        const data = dataLine.slice(5).trim()
-        if (data === '[DONE]') return
+      // Ollama streams one JSON object per line
+      const lines = buffer.split('\n')
+      buffer = lines.pop() ?? ''
+      for (const line of lines) {
+        if (!line.trim()) continue
         try {
-          const json = JSON.parse(data)
-          const delta = json.choices?.[0]?.delta?.content
-          if (delta) yield delta as string
+          const json = JSON.parse(line)
+          if (json.message?.content) {
+            yield json.message.content as string
+          }
+          if (json.done) return
         } catch {
-          /* ignore keep-alive or malformed lines */
+          /* ignore malformed lines */
         }
       }
     }
